@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chonky Image Tagger</title>
+<link href="https://fonts.googleapis.com/css2?family=Boogaloo&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--red:#E8231A;--yellow:#FFD93D;--yellow-dark:#F0C000;--black:#111;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Nunito',sans-serif;background:#1a1a1a;min-height:100vh;color:white;padding:2rem 1rem;}
+.wrap{max-width:700px;margin:0 auto;}
+h1{font-family:'Boogaloo',cursive;font-size:2.5rem;color:var(--yellow);margin-bottom:0.3rem;}
+.sub{color:rgba(255,255,255,0.6);font-size:0.95rem;margin-bottom:2rem;font-weight:600;}
+.card{background:rgba(255,255,255,0.06);border-radius:16px;padding:1.5rem;margin-bottom:1.2rem;border:2px solid rgba(255,255,255,0.08);}
+.card h2{font-family:'Boogaloo',cursive;font-size:1.4rem;margin-bottom:0.8rem;color:var(--yellow);}
+.field-label{display:block;color:white;font-weight:800;font-size:0.85rem;margin-bottom:6px;}
+.field-label span{color:rgba(255,255,255,0.45);font-weight:600;font-size:0.78rem;margin-left:4px;}
+.input{width:100%;padding:11px 16px;border-radius:10px;border:none;background:rgba(0,0,0,0.4);color:white;font-family:'Nunito',sans-serif;font-size:0.9rem;font-weight:600;outline:none;margin-bottom:10px;}
+.input::placeholder{color:rgba(255,255,255,0.25);}
+.input:focus{outline:2px solid rgba(255,217,61,0.4);}
+.btn{font-family:'Nunito',sans-serif;font-weight:800;font-size:0.9rem;padding:12px 28px;border-radius:50px;border:none;cursor:pointer;transition:all 0.18s;text-transform:uppercase;letter-spacing:0.5px;}
+.btn-yellow{background:var(--yellow);color:var(--black);box-shadow:0 3px 0 var(--yellow-dark);}
+.btn-yellow:hover{transform:translateY(-1px);box-shadow:0 4px 0 var(--yellow-dark);}
+.btn-yellow:disabled{opacity:0.5;cursor:not-allowed;transform:none;}
+.btn-ghost{background:rgba(255,255,255,0.08);color:white;border:2px solid rgba(255,255,255,0.2);}
+.btn-ghost:hover{background:rgba(255,255,255,0.14);}
+.progress-bar-wrap{background:rgba(255,255,255,0.08);border-radius:50px;height:12px;margin:1rem 0;overflow:hidden;}
+.progress-bar{height:100%;background:var(--yellow);border-radius:50px;transition:width 0.4s ease;width:0%;}
+.log{background:rgba(0,0,0,0.35);border-radius:12px;padding:1rem;max-height:300px;overflow-y:auto;font-size:0.8rem;font-family:monospace;line-height:1.8;color:rgba(255,255,255,0.7);}
+.log-entry{margin-bottom:2px;}
+.log-entry.ok{color:#2ecc71;}
+.log-entry.err{color:#e74c3c;}
+.log-entry.info{color:var(--yellow);}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:1rem 0;}
+.stat{background:rgba(255,255,255,0.06);border-radius:12px;padding:1rem;text-align:center;}
+.stat-num{font-family:'Boogaloo',cursive;font-size:2rem;color:var(--yellow);}
+.stat-label{font-size:0.75rem;color:rgba(255,255,255,0.5);font-weight:700;text-transform:uppercase;letter-spacing:0.5px;}
+.download-section{display:none;text-align:center;padding:1.5rem;}
+.download-section h3{font-family:'Boogaloo',cursive;font-size:1.6rem;margin-bottom:0.5rem;color:#2ecc71;}
+.download-section p{color:rgba(255,255,255,0.6);font-size:0.88rem;margin-bottom:1.2rem;line-height:1.6;}
+.step{display:flex;gap:12px;align-items:flex-start;margin-bottom:10px;font-size:0.88rem;color:rgba(255,255,255,0.75);}
+.step-num{background:var(--yellow);color:var(--black);width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:0.8rem;flex-shrink:0;margin-top:1px;}
+.warning{background:rgba(255,165,0,0.12);border:2px solid rgba(255,165,0,0.3);border-radius:12px;padding:1rem;font-size:0.85rem;color:rgba(255,255,255,0.8);line-height:1.6;}
+.warning strong{color:var(--yellow);}
+.spin{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,0.2);border-top-color:var(--yellow);border-radius:50%;animation:spin 0.7s linear infinite;vertical-align:middle;margin-right:6px;}
+@keyframes spin{to{transform:rotate(360deg);}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🐾 Chonky Image Tagger</h1>
+  <p class="sub">One-time tool — tag all your GitHub images with AI, download the result, add it to your site. Never pay for tagging again.</p>
+
+  <div class="card">
+    <h2>⚠️ Before You Start</h2>
+    <div class="warning">
+      <strong>Run this tool in private / incognito mode</strong> so your API key isn't saved in browser history. Close the tab when done. Your key is only used here and never stored anywhere.
+    </div>
+  </div>
+
+  <div class="card" id="setupCard">
+    <h2>Step 1 — Your API Key</h2>
+    <label class="field-label">Anthropic API Key <span>(starts with sk-ant-...)</span></label>
+    <input class="input" id="apiKey" type="password" placeholder="sk-ant-api03-...">
+
+    <h2 style="margin-top:1.2rem;">Step 2 — GitHub Repo</h2>
+    <label class="field-label">GitHub Username</label>
+    <input class="input" id="ghUser" type="text" value="DenXSol">
+    <label class="field-label">Repository Name</label>
+    <input class="input" id="ghRepo" type="text" value="Chonky-media">
+    <label class="field-label">Branch</label>
+    <input class="input" id="ghBranch" type="text" value="main">
+
+    <h2 style="margin-top:1.2rem;">Step 3 — Folders to Tag</h2>
+    <label class="field-label">Folder names <span>(comma separated, maps to tab names)</span></label>
+    <input class="input" id="folders" type="text" value="gif:gifs, stickers:stickers, art:art" placeholder="foldername:tabname, ...">
+    <p style="font-size:0.78rem;color:rgba(255,255,255,0.4);margin-bottom:1rem;">Format: <code>github_folder:site_tab</code> — e.g. <code>gif:gifs</code> means folder "gif" shows under GIFs tab</p>
+
+    <button class="btn btn-yellow" onclick="startTagging()">🚀 Start Tagging All Images</button>
+  </div>
+
+  <div class="card" id="progressCard" style="display:none">
+    <h2>Tagging in Progress...</h2>
+    <div class="stats">
+      <div class="stat"><div class="stat-num" id="statTotal">0</div><div class="stat-label">Total Images</div></div>
+      <div class="stat"><div class="stat-num" id="statDone">0</div><div class="stat-label">Tagged</div></div>
+      <div class="stat"><div class="stat-num" id="statErrors">0</div><div class="stat-label">Errors</div></div>
+    </div>
+    <div class="progress-bar-wrap"><div class="progress-bar" id="progressBar"></div></div>
+    <p id="progressText" style="font-size:0.82rem;color:rgba(255,255,255,0.5);margin-bottom:1rem;font-weight:600;">Fetching image list...</p>
+    <div class="log" id="log"></div>
+    <div class="download-section" id="downloadSection">
+      <h3>✅ All Done!</h3>
+      <p>Your tags file is ready. Download it and add it to your <strong>chonky-site</strong> GitHub repo so the site loads tags instantly — no API calls needed ever again.</p>
+      <button class="btn btn-yellow" onclick="downloadTags()" style="margin-bottom:1.5rem;">⬇️ Download tags.json</button>
+      <div style="text-align:left;margin-top:1rem;">
+        <p style="font-weight:800;margin-bottom:0.8rem;font-size:0.88rem;">Next steps:</p>
+        <div class="step"><div class="step-num">1</div><div>Download <strong>tags.json</strong> using the button above</div></div>
+        <div class="step"><div class="step-num">2</div><div>Go to your <strong>chonky-site</strong> GitHub repo</div></div>
+        <div class="step"><div class="step-num">3</div><div>Upload <strong>tags.json</strong> to the root of the repo</div></div>
+        <div class="step"><div class="step-num">4</div><div>Vercel will auto-deploy — tags load instantly for all visitors!</div></div>
+        <div class="step"><div class="step-num">5</div><div>Close this tab and delete your API key from this page</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const PROXY = 'https://api.allorigins.win/get?url=';
+let tagsResult = {};
+let totalCount = 0, doneCount = 0, errorCount = 0;
+
+function log(msg, type='info') {
+  const el = document.getElementById('log');
+  const div = document.createElement('div');
+  div.className = `log-entry ${type}`;
+  div.textContent = msg;
+  el.appendChild(div);
+  el.scrollTop = el.scrollHeight;
+}
+
+function updateStats() {
+  document.getElementById('statTotal').textContent = totalCount;
+  document.getElementById('statDone').textContent = doneCount;
+  document.getElementById('statErrors').textContent = errorCount;
+  const pct = totalCount > 0 ? Math.round((doneCount + errorCount) / totalCount * 100) : 0;
+  document.getElementById('progressBar').style.width = pct + '%';
+  document.getElementById('progressText').textContent = `${doneCount + errorCount} of ${totalCount} complete (${pct}%)`;
+}
+
+async function startTagging() {
+  const apiKey = document.getElementById('apiKey').value.trim();
+  const ghUser = document.getElementById('ghUser').value.trim();
+  const ghRepo = document.getElementById('ghRepo').value.trim();
+  const ghBranch = document.getElementById('ghBranch').value.trim();
+  const foldersRaw = document.getElementById('folders').value.trim();
+
+  if (!apiKey || !apiKey.startsWith('sk-ant')) { alert('Please enter a valid Anthropic API key (starts with sk-ant-)'); return; }
+
+  // Parse folder map
+  const folderMap = {};
+  foldersRaw.split(',').forEach(pair => {
+    const [folder, tab] = pair.trim().split(':').map(s => s.trim());
+    if (folder && tab) folderMap[folder] = tab;
+  });
+
+  document.getElementById('setupCard').style.display = 'none';
+  document.getElementById('progressCard').style.display = 'block';
+
+  const RAW = `https://raw.githubusercontent.com/${ghUser}/${ghRepo}/${ghBranch}`;
+  tagsResult = {};
+  totalCount = 0; doneCount = 0; errorCount = 0;
+
+  // Collect all files first
+  log('📋 Fetching file list from GitHub...', 'info');
+  const allFiles = [];
+
+  for (const [folder, tab] of Object.entries(folderMap)) {
+    try {
+      const apiUrl = `https://api.github.com/repos/${ghUser}/${ghRepo}/contents/${folder}`;
+      const res = await fetch(PROXY + encodeURIComponent(apiUrl));
+      const data = await res.json();
+      const files = JSON.parse(data.contents);
+      if (!Array.isArray(files)) { log(`⚠️ Folder "${folder}" not found or empty`, 'err'); continue; }
+      const imgFiles = files.filter(f => f.type === 'file' && /\.(gif|png|webp|jpg|jpeg)$/i.test(f.name));
+      imgFiles.forEach(f => allFiles.push({ folder, tab, name: f.name, url: `${RAW}/${folder}/${encodeURIComponent(f.name)}` }));
+      log(`✓ Found ${imgFiles.length} images in /${folder}`, 'ok');
+    } catch(e) {
+      log(`✗ Failed to fetch /${folder}: ${e.message}`, 'err');
+    }
+  }
+
+  totalCount = allFiles.length;
+  updateStats();
+
+  if (totalCount === 0) {
+    log('❌ No images found! Check your GitHub username and folder names.', 'err');
+    return;
+  }
+
+  log(`\n🚀 Starting to tag ${totalCount} images...`, 'info');
+
+  // Tag each image with a small delay to avoid rate limits
+  for (const file of allFiles) {
+    const id = `gh_${file.tab}_${file.name.replace(/[^a-z0-9]/gi, '_')}`;
+    try {
+      log(`⏳ Tagging: ${file.name}`, 'info');
+
+      // Fetch image and convert to base64
+      const imgRes = await fetch(file.url);
+      if (!imgRes.ok) throw new Error(`HTTP ${imgRes.status}`);
+      const blob = await imgRes.blob();
+      const base64 = await new Promise(resolve => {
+        const reader = new FileReader();
+        reader.onload = e => resolve(e.target.result.split(',')[1]);
+        reader.readAsDataURL(blob);
+      });
+
+      // Call Claude API
+      const claudeRes = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': apiKey,
+          'anthropic-version': '2023-06-01',
+          'anthropic-dangerous-direct-browser-calls': 'true'
+        },
+        body: JSON.stringify({
+          model: 'claude-haiku-4-5-20251001',
+          max_tokens: 200,
+          system: 'You are an image tagger for Chonky World, a site about a chubby cartoon cat/duck character. Respond ONLY with a raw JSON array of exactly 5 short lowercase tags (1-2 words each) describing the mood, action, pose, and vibe. No explanation, no markdown, just the array.',
+          messages: [{
+            role: 'user',
+            content: [
+              { type: 'image', source: { type: 'base64', media_type: blob.type || 'image/gif', data: base64 } },
+              { type: 'text', text: '5 tags.' }
+            ]
+          }]
+        })
+      });
+
+      const claudeData = await claudeRes.json();
+      if (claudeData.error) throw new Error(claudeData.error.message);
+      const text = claudeData.content?.[0]?.text || '[]';
+      const tags = JSON.parse(text.replace(/```json|```/g, '').trim());
+
+      tagsResult[id] = {
+        tags: Array.isArray(tags) ? tags.slice(0, 5) : [],
+        label: file.name.replace(/\.[^.]+$/, '').replace(/[-_()\[\]]/g, ' ').trim(),
+        tab: file.tab,
+        src: file.url
+      };
+
+      doneCount++;
+      log(`✓ ${file.name} → [${tagsResult[id].tags.join(', ')}]`, 'ok');
+    } catch(e) {
+      errorCount++;
+      log(`✗ ${file.name}: ${e.message}`, 'err');
+      // Still save it with empty tags so it shows on the site
+      tagsResult[id] = {
+        tags: ['chonky', 'cute', 'funny', 'cartoon', 'animated'],
+        label: file.name.replace(/\.[^.]+$/, '').replace(/[-_()\[\]]/g, ' ').trim(),
+        tab: file.tab,
+        src: file.url
+      };
+    }
+
+    updateStats();
+    // Small delay between requests to be polite to the API
+    await new Promise(r => setTimeout(r, 300));
+  }
+
+  log(`\n🎉 Done! Tagged ${doneCount} images, ${errorCount} errors.`, 'info');
+  document.getElementById('downloadSection').style.display = 'block';
+}
+
+function downloadTags() {
+  const json = JSON.stringify(tagsResult, null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'tags.json';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+</script>
+</body>
+</html>
