@@ -9,7 +9,7 @@
 :root{--red:#E8231A;--red-dark:#C41A12;--yellow:#FFD93D;--yellow-dark:#F0C000;--black:#111;--radius:16px;--card-bg:rgba(0,0,0,0.18);--card-hover:rgba(0,0,0,0.30);}
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:'Nunito',sans-serif;background:var(--red);min-height:100vh;color:white;overflow-x:hidden;}
-header{position:sticky;top:0;z-index:200;background:var(--red-dark);border-bottom:3px solid rgba(0,0,0,0.2);padding:0 1.5rem;height:72px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 3px 20px rgba(0,0,0,0.3);}
+header{position:sticky;top:0;z-index:200;background:var(--red-dark);border-bottom:3px solid rgba(0,0,0,0.2);padding:0 1.5rem;height:80px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 3px 20px rgba(0,0,0,0.3);}
 .logo{font-family:'Boogaloo',cursive;font-size:1.7rem;color:var(--yellow);text-shadow:2px 2px 0 rgba(0,0,0,0.2);cursor:pointer;}
 .logo span{color:rgba(255,255,255,0.8);font-size:1.1rem;}
 .header-btns{display:flex;gap:8px;align-items:center;}
@@ -165,7 +165,7 @@ footer{position:relative;z-index:1;text-align:center;padding:1.5rem;border-top:2
 </head>
 <body>
 <header>
-  <div class="logo" onclick="goHome()"><img src="https://raw.githubusercontent.com/DenXSol/chonky-site/main/chonkylogo2.png" alt="Chonky" style="height:44px;width:auto;vertical-align:middle;margin-right:6px;"><span style="font-family:Boogaloo,cursive;font-size:1.4rem;color:rgba(255,255,255,0.85);font-weight:400;">.content</span></div>
+  <div class="logo" onclick="goHome()"><img src="https://raw.githubusercontent.com/DenXSol/chonky-site/main/chonkylogo2.png" alt="Chonky" style="height:54px;width:auto;vertical-align:middle;margin-right:4px;"><span style="font-family:Boogaloo,cursive;font-size:1.4rem;color:rgba(255,255,255,0.85);font-weight:400;">.STUDIO</span></div>
   <div class="header-btns">
     <button class="btn btn-ghost" onclick="showAdmin()">Admin</button>
     <button class="btn btn-yellow" onclick="showCommunity()">+ Submit</button>
@@ -369,9 +369,8 @@ async function syncFromGitHub(){
   for(const[tab,folder]of Object.entries(FOLDER_MAP)){
     try{
       const apiUrl=`https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${folder}`;
-      const res=await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(apiUrl)}`);
-      const data=await res.json();
-      const files=JSON.parse(data.contents);
+      const res=await fetch(`https://corsproxy.io/?${encodeURIComponent(apiUrl)}`);
+      const files=await res.json();
       if(!Array.isArray(files))continue;
       files.forEach(f=>{
         if(f.type==='file'&&/\.(gif|png|webp|jpg|jpeg)$/i.test(f.name)){
