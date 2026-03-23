@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>content.chonky.com</title>
+<link href="https://fonts.googleapis.com/css2?family=Boogaloo&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{--red:#E8231A;--red-dark:#C41A12;--yellow:#FFD93D;--yellow-dark:#F0C000;--black:#111;--radius:16px;--card-bg:rgba(0,0,0,0.18);--card-hover:rgba(0,0,0,0.30);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Nunito',sans-serif;background:var(--red);min-height:100vh;color:white;overflow-x:hidden;}
+header{position:sticky;top:0;z-index:200;background:var(--red-dark);border-bottom:3px solid rgba(0,0,0,0.2);padding:0 1.5rem;height:60px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 3px 20px rgba(0,0,0,0.3);}
+.logo{font-family:'Boogaloo',cursive;font-size:1.7rem;color:var(--yellow);text-shadow:2px 2px 0 rgba(0,0,0,0.2);cursor:pointer;}
+.logo span{color:rgba(255,255,255,0.8);font-size:1.1rem;}
+.header-btns{display:flex;gap:8px;align-items:center;}
+.btn{font-family:'Nunito',sans-serif;font-weight:800;font-size:0.82rem;padding:8px 18px;border-radius:50px;border:none;cursor:pointer;transition:all 0.18s;letter-spacing:0.4px;text-transform:uppercase;}
+.btn-ghost{background:rgba(255,255,255,0.12);color:white;border:2px solid rgba(255,255,255,0.25);}
+.btn-ghost:hover{background:rgba(255,255,255,0.2);}
+.btn-yellow{background:var(--yellow);color:var(--black);box-shadow:0 3px 0 var(--yellow-dark);}
+.btn-yellow:hover{transform:translateY(-1px);box-shadow:0 4px 0 var(--yellow-dark);}
+.btn-yellow:active{transform:translateY(1px);box-shadow:0 1px 0 var(--yellow-dark);}
+.hero{text-align:center;padding:2.5rem 1rem 1.5rem;position:relative;z-index:1;}
+.hero h1{font-family:'Boogaloo',cursive;font-size:clamp(2.8rem,7vw,5rem);text-shadow:3px 3px 0 rgba(0,0,0,0.15);line-height:1;margin-bottom:0.3rem;}
+.hero p{font-size:1rem;color:rgba(255,255,255,0.8);font-weight:600;margin-bottom:1.5rem;}
+.main-tabs{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-bottom:0.8rem;}
+.main-tab{font-family:'Nunito',sans-serif;font-weight:800;font-size:0.9rem;padding:10px 26px;border-radius:50px;border:none;cursor:pointer;letter-spacing:0.8px;text-transform:uppercase;transition:all 0.18s;}
+.main-tab.active{background:#111;color:white;box-shadow:0 3px 0 rgba(0,0,0,0.4);}
+.main-tab:not(.active){background:rgba(0,0,0,0.18);color:rgba(255,255,255,0.8);}
+.main-tab:not(.active):hover{background:rgba(0,0,0,0.28);color:white;}
+.tab-icon{width:42px;height:42px;background:rgba(0,0,0,0.18);border:none;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.18s;color:white;}
+.tab-icon.has-saves{background:var(--yellow);color:var(--black);}
+.search-wrap{max-width:480px;margin:0 auto;position:relative;}
+.search-input{width:100%;padding:13px 20px 13px 48px;border-radius:50px;border:none;background:rgba(0,0,0,0.22);color:white;font-family:'Nunito',sans-serif;font-size:0.95rem;font-weight:600;outline:none;transition:background 0.2s;}
+.search-input::placeholder{color:rgba(255,255,255,0.45);}
+.search-input:focus{background:rgba(0,0,0,0.32);}
+.search-icon{position:absolute;left:16px;top:50%;transform:translateY(-50%);opacity:0.45;pointer-events:none;}
+.grid-section{max-width:1400px;margin:1.5rem auto 0;padding:0 1.2rem 4rem;position:relative;z-index:1;}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;}
+.card{background:var(--card-bg);border-radius:var(--radius);overflow:hidden;position:relative;cursor:pointer;transition:transform 0.2s,background 0.2s,box-shadow 0.2s;border:2px solid rgba(255,255,255,0.07);display:flex;flex-direction:column;}
+.card:hover{transform:translateY(-4px) scale(1.02);background:var(--card-hover);box-shadow:0 8px 30px rgba(0,0,0,0.3);border-color:rgba(255,255,255,0.18);}
+.card-img-wrap{aspect-ratio:1;position:relative;overflow:hidden;}
+.card img{width:100%;height:100%;object-fit:contain;padding:10px;display:block;background:transparent;}
+.community-badge{position:absolute;top:8px;left:8px;background:var(--yellow);color:var(--black);font-size:0.62rem;font-weight:900;padding:3px 8px;border-radius:50px;text-transform:uppercase;z-index:2;}
+.card-tags{position:absolute;top:8px;right:8px;display:flex;flex-wrap:wrap;gap:3px;justify-content:flex-end;max-width:65%;opacity:0;transition:opacity 0.2s;z-index:2;}
+.card:hover .card-tags{opacity:1;}
+.tag-pill{background:rgba(0,0,0,0.65);color:rgba(255,255,255,0.9);font-size:0.58rem;font-weight:700;padding:2px 6px;border-radius:50px;white-space:nowrap;}
+.card-overlay{position:absolute;bottom:0;left:0;right:0;padding:8px 10px;background:linear-gradient(transparent,rgba(0,0,0,0.72));opacity:0;transition:opacity 0.2s;display:flex;align-items:center;justify-content:space-between;gap:6px;z-index:2;}
+.card:hover .card-overlay{opacity:1;}
+.btn-save{background:white;color:var(--black);border:none;font-family:'Nunito',sans-serif;font-weight:800;font-size:0.72rem;padding:5px 13px;border-radius:50px;cursor:pointer;transition:all 0.15s;flex-shrink:0;}
+.btn-save:hover,.btn-save.saved{background:var(--yellow);}
+.btn-bk{width:28px;height:28px;background:rgba(255,255,255,0.15);border:none;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;color:white;transition:all 0.15s;flex-shrink:0;}
+.btn-bk.bookmarked{background:var(--yellow);color:var(--black);}
+.card-footer{padding:6px 10px 8px;display:flex;align-items:center;justify-content:space-between;gap:6px;border-top:1px solid rgba(255,255,255,0.07);}
+.star-row{display:flex;align-items:center;gap:2px;}
+.star{font-size:0.9rem;cursor:pointer;transition:transform 0.1s;line-height:1;color:rgba(255,255,255,0.22);user-select:none;}
+.star.lit{color:var(--yellow);}
+.star:hover{transform:scale(1.25);}
+.vote-count{font-size:0.66rem;color:rgba(255,255,255,0.4);font-weight:700;white-space:nowrap;}
+.voted-badge{font-size:0.62rem;background:rgba(255,217,61,0.15);color:var(--yellow);font-weight:800;padding:2px 7px;border-radius:50px;white-space:nowrap;}
+/* COMMUNITY */
+.community-section{max-width:680px;margin:0 auto;padding:0 1.2rem 3rem;position:relative;z-index:1;display:none;}
+.community-section.visible{display:block;}
+.section-heading{font-family:'Boogaloo',cursive;font-size:2.5rem;text-align:center;margin-bottom:0.3rem;padding-top:2rem;}
+.section-sub{text-align:center;color:rgba(255,255,255,0.75);font-size:0.95rem;font-weight:600;margin-bottom:1.8rem;}
+.upload-card{background:rgba(0,0,0,0.2);border-radius:20px;padding:2rem;border:2px solid rgba(255,255,255,0.1);}
+.drop-zone{border:3px dashed rgba(255,255,255,0.22);border-radius:14px;padding:2.2rem 1rem;text-align:center;cursor:pointer;transition:all 0.2s;margin-bottom:1.5rem;}
+.drop-zone:hover,.drop-zone.dragover{border-color:var(--yellow);background:rgba(255,217,61,0.07);}
+.drop-zone p{color:rgba(255,255,255,0.55);font-size:0.85rem;margin-bottom:0.8rem;}
+.field-group{margin-bottom:14px;}
+.field-label{display:block;color:white;font-weight:800;font-size:0.88rem;margin-bottom:6px;letter-spacing:0.2px;}
+.field-label span{color:rgba(255,255,255,0.5);font-weight:600;font-size:0.78rem;margin-left:4px;}
+.form-input{width:100%;padding:11px 16px;border-radius:10px;border:none;background:rgba(0,0,0,0.3);color:white;font-family:'Nunito',sans-serif;font-size:0.9rem;font-weight:600;outline:none;transition:background 0.2s;}
+.form-input::placeholder{color:rgba(255,255,255,0.28);}
+.form-input:focus{background:rgba(0,0,0,0.42);outline:2px solid rgba(255,217,61,0.35);}
+.preview-img{max-width:150px;max-height:150px;border-radius:12px;margin-bottom:10px;border:2px solid rgba(255,255,255,0.12);object-fit:contain;display:none;background:rgba(0,0,0,0.2);}
+.ai-status{font-size:0.8rem;color:rgba(255,255,255,0.6);font-weight:600;margin-bottom:8px;min-height:20px;}
+.tag-preview-wrap{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:14px;}
+.tag-badge{background:rgba(255,255,255,0.14);color:white;font-size:0.73rem;font-weight:700;padding:4px 10px;border-radius:50px;}
+.pending-note{background:rgba(255,165,0,0.12);border:2px solid rgba(255,165,0,0.28);border-radius:12px;padding:0.9rem 1.1rem;margin-top:1.2rem;font-size:0.85rem;color:rgba(255,255,255,0.8);font-weight:600;text-align:center;}
+/* ADMIN */
+.admin-panel{max-width:960px;margin:0 auto;padding:0 1.2rem 4rem;position:relative;z-index:1;display:none;}
+.admin-panel.visible{display:block;}
+.admin-login-box{background:rgba(0,0,0,0.25);border-radius:20px;padding:2rem;max-width:340px;margin:2rem auto;text-align:center;}
+.admin-login-box h2{font-family:'Boogaloo',cursive;font-size:1.8rem;margin-bottom:0.8rem;}
+.admin-section-title{font-family:'Boogaloo',cursive;font-size:1.8rem;margin:2rem 0 1rem;display:flex;align-items:center;gap:10px;}
+.queue-badge{background:var(--yellow);color:var(--black);font-size:0.75rem;font-weight:900;padding:3px 12px;border-radius:50px;}
+.pending-card{background:rgba(0,0,0,0.2);border-radius:14px;padding:1rem;margin-bottom:10px;display:flex;gap:1rem;align-items:flex-start;border:2px solid rgba(255,255,255,0.07);}
+.pending-card img{width:88px;height:88px;object-fit:contain;border-radius:10px;background:rgba(0,0,0,0.2);flex-shrink:0;padding:4px;}
+.pending-info{flex:1;min-width:0;}
+.pending-name{font-weight:800;font-size:0.95rem;margin-bottom:2px;}
+.pending-sub{font-size:0.78rem;color:rgba(255,255,255,0.55);margin-bottom:6px;}
+.pending-tags{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px;}
+.pending-actions{display:flex;gap:7px;flex-wrap:wrap;}
+.btn-approve{background:#27ae60;color:white;border:none;font-family:'Nunito',sans-serif;font-weight:800;font-size:0.78rem;padding:6px 15px;border-radius:50px;cursor:pointer;}
+.btn-reject{background:rgba(231,76,60,0.35);color:white;border:none;font-family:'Nunito',sans-serif;font-weight:800;font-size:0.78rem;padding:6px 15px;border-radius:50px;cursor:pointer;}
+.cat-select{background:rgba(255,255,255,0.1);color:white;border:none;border-radius:50px;padding:5px 10px;font-size:0.75rem;font-family:'Nunito',sans-serif;font-weight:700;cursor:pointer;}
+.admin-manage-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-top:0.5rem;}
+.manage-card{background:rgba(0,0,0,0.2);border-radius:12px;overflow:hidden;position:relative;aspect-ratio:1;border:2px solid rgba(255,255,255,0.06);}
+.manage-card img{width:100%;height:100%;object-fit:contain;padding:8px;}
+.manage-overlay{position:absolute;inset:0;background:rgba(0,0,0,0.55);display:flex;align-items:flex-end;padding:8px;opacity:0;transition:opacity 0.2s;}
+.manage-card:hover .manage-overlay{opacity:1;}
+.btn-del{background:rgba(231,76,60,0.8);color:white;border:none;font-family:'Nunito',sans-serif;font-weight:800;font-size:0.7rem;padding:4px 10px;border-radius:50px;cursor:pointer;width:100%;}
+.sync-info{background:rgba(0,0,0,0.2);border-radius:12px;padding:1rem 1.2rem;margin-bottom:1rem;}
+.sync-info h3{font-family:'Boogaloo',cursive;font-size:1.3rem;margin-bottom:0.4rem;}
+/* MODAL */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.78);z-index:999;align-items:center;justify-content:center;padding:1rem;backdrop-filter:blur(6px);}
+.modal-bg.open{display:flex;}
+.modal{background:#1a1a1a;border-radius:22px;padding:1.8rem;max-width:440px;width:100%;position:relative;animation:popIn 0.22s ease-out;border:2px solid rgba(255,255,255,0.08);max-height:90vh;overflow-y:auto;}
+@keyframes popIn{from{transform:scale(0.88);opacity:0;}to{transform:scale(1);opacity:1;}}
+.modal-x{position:absolute;top:14px;right:14px;background:rgba(255,255,255,0.08);border:none;color:white;width:34px;height:34px;border-radius:50%;cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;}
+.modal-x:hover{background:rgba(255,255,255,0.16);}
+.modal-img-bg{background:rgba(255,255,255,0.04);border-radius:14px;padding:1rem;margin-bottom:1rem;text-align:center;min-height:160px;display:flex;align-items:center;justify-content:center;}
+.modal-img-bg img{max-width:180px;max-height:180px;object-fit:contain;}
+.modal h2{font-family:'Boogaloo',cursive;font-size:1.5rem;margin-bottom:0.4rem;}
+.modal-tags{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:1rem;}
+.modal-tag{background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.8);font-size:0.7rem;font-weight:700;padding:3px 9px;border-radius:50px;}
+.modal-rating{background:rgba(255,255,255,0.05);border-radius:12px;padding:0.9rem 1rem;margin-bottom:1rem;}
+.modal-rating-label{font-size:0.75rem;color:rgba(255,255,255,0.5);font-weight:700;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px;}
+.modal-stars{display:flex;gap:6px;margin-bottom:5px;}
+.modal-star{font-size:1.6rem;cursor:pointer;transition:transform 0.12s;line-height:1;color:rgba(255,255,255,0.18);user-select:none;}
+.modal-star.lit{color:var(--yellow);}
+.modal-star:hover{transform:scale(1.15);}
+.modal-rating-info{font-size:0.78rem;color:rgba(255,255,255,0.5);font-weight:600;}
+.modal-voted{color:var(--yellow);font-weight:800;}
+.modal-actions{display:flex;flex-direction:column;gap:8px;}
+.btn-dl{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:12px;border-radius:11px;border:none;font-family:'Nunito',sans-serif;font-weight:800;font-size:0.9rem;cursor:pointer;transition:all 0.18s;text-decoration:none;}
+.btn-dl.primary{background:var(--yellow);color:var(--black);box-shadow:0 3px 0 var(--yellow-dark);}
+.btn-dl.primary:hover{transform:translateY(-1px);}
+.btn-dl.secondary{background:rgba(255,255,255,0.08);color:white;}
+.btn-dl.secondary:hover{background:rgba(255,255,255,0.15);}
+.empty{text-align:center;padding:4rem 1rem;opacity:0.65;}
+.empty-icon{font-size:3rem;margin-bottom:0.8rem;}
+.empty h3{font-family:'Boogaloo',cursive;font-size:1.8rem;margin-bottom:0.4rem;}
+.empty p{font-size:0.9rem;color:rgba(255,255,255,0.65);max-width:300px;margin:0 auto;line-height:1.6;}
+.load-more{text-align:center;margin-top:2rem;}
+.btn-load{background:rgba(0,0,0,0.22);border:2px solid rgba(255,255,255,0.18);color:white;font-family:'Nunito',sans-serif;font-weight:800;font-size:0.85rem;padding:11px 32px;border-radius:50px;cursor:pointer;text-transform:uppercase;letter-spacing:0.8px;transition:all 0.18s;}
+.btn-load:hover{background:rgba(0,0,0,0.35);}
+.spin-sm{display:inline-block;width:13px;height:13px;border:2px solid rgba(255,255,255,0.2);border-top-color:var(--yellow);border-radius:50%;animation:spin 0.7s linear infinite;vertical-align:middle;margin-right:5px;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.toast{position:fixed;bottom:1.8rem;left:50%;transform:translateX(-50%) translateY(80px);background:#111;color:white;font-family:'Nunito',sans-serif;font-weight:700;font-size:0.88rem;padding:11px 22px;border-radius:50px;z-index:9999;transition:transform 0.28s ease;border:2px solid rgba(255,255,255,0.1);white-space:nowrap;pointer-events:none;}
+.toast.show{transform:translateX(-50%) translateY(0);}
+
+.welcome-bg{position:fixed;inset:0;background:rgba(0,0,0,0.82);z-index:9998;display:flex;align-items:center;justify-content:center;padding:1rem;backdrop-filter:blur(6px);}
+.welcome-modal{background:#1a1a1a;border-radius:24px;padding:2rem;max-width:500px;width:100%;border:2px solid rgba(255,255,255,0.1);animation:popIn 0.3s ease-out;max-height:90vh;overflow-y:auto;}
+.welcome-logo{font-family:'Boogaloo',cursive;font-size:2rem;color:#FFD93D;text-align:center;margin-bottom:0.2rem;}
+.welcome-tagline{text-align:center;color:rgba(255,255,255,0.6);font-size:0.88rem;font-weight:600;margin-bottom:1.5rem;}
+.welcome-section{margin-bottom:1.2rem;}
+.welcome-section h3{font-family:'Boogaloo',cursive;font-size:1.2rem;color:#FFD93D;margin-bottom:0.6rem;display:flex;align-items:center;gap:8px;}
+.welcome-item{display:flex;gap:10px;align-items:flex-start;margin-bottom:8px;font-size:0.88rem;color:rgba(255,255,255,0.85);line-height:1.5;}
+.welcome-dot{width:8px;height:8px;background:#FFD93D;border-radius:50%;flex-shrink:0;margin-top:6px;}
+.welcome-cat{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:1rem;}
+.welcome-cat-card{background:rgba(255,255,255,0.06);border-radius:12px;padding:0.7rem 0.9rem;border:1.5px solid rgba(255,255,255,0.08);}
+.welcome-cat-card .cat-icon{font-size:1.2rem;margin-bottom:3px;}
+.welcome-cat-card .cat-name{font-weight:900;font-size:0.82rem;color:white;margin-bottom:2px;}
+.welcome-cat-card .cat-desc{font-size:0.72rem;color:rgba(255,255,255,0.5);line-height:1.4;}
+.welcome-community{background:rgba(255,217,61,0.08);border:1.5px solid rgba(255,217,61,0.2);border-radius:12px;padding:0.9rem 1rem;margin-bottom:1.2rem;}
+.welcome-community h4{font-weight:900;font-size:0.85rem;color:#FFD93D;margin-bottom:0.5rem;}
+.welcome-step{display:flex;gap:8px;align-items:flex-start;margin-bottom:5px;font-size:0.82rem;color:rgba(255,255,255,0.75);}
+.welcome-step-num{background:#FFD93D;color:#111;width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:0.7rem;flex-shrink:0;}
+.welcome-rating{background:rgba(255,255,255,0.05);border-radius:12px;padding:0.9rem 1rem;margin-bottom:1.2rem;}
+.welcome-rating h4{font-weight:900;font-size:0.85rem;color:white;margin-bottom:0.5rem;}
+footer{position:relative;z-index:1;text-align:center;padding:1.5rem;border-top:2px solid rgba(0,0,0,0.15);font-size:0.82rem;color:rgba(255,255,255,0.4);font-weight:600;}
+@media(max-width:600px){header{padding:0 1rem;}.logo{font-size:1.3rem;}.grid{grid-template-columns:repeat(2,1fr);gap:10px;}.grid-section{padding:0 0.8rem 4rem;}.pending-card{flex-direction:column;}}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo" onclick="goHome()">CHONKY<span>.content</span></div>
+  <div class="header-btns">
+    <button class="btn btn-ghost" onclick="showAdmin()">Admin</button>
+    <button class="btn btn-yellow" onclick="showCommunity()">+ Submit</button>
+  </div>
+</header>
+
+<div class="hero" id="heroSection">
+  <img src="https://raw.githubusercontent.com/DenXSol/Chonky-media/main/chonklogo.png" alt="Chonky Studio" style="max-width:440px;width:90%;height:auto;margin:0 auto 0.4rem;display:block;" onerror="this.style.display='none';document.getElementById('logoFallback').style.display='block'"><h1 id="logoFallback" style="display:none;font-family:Boogaloo,cursive;font-size:clamp(2.8rem,7vw,5rem);text-shadow:3px 3px 0 rgba(0,0,0,0.15);line-height:1;margin-bottom:0.3rem;">Chonky Studio</h1>
+  <p>Download & share your favourite Chonky GIFs, stickers and art</p>
+  <div class="main-tabs">
+    <button class="main-tab active" id="tab-gifs" onclick="switchTab('gifs',this)">GIFs</button>
+    <button class="main-tab" id="tab-stickers" onclick="switchTab('stickers',this)">Stickers</button>
+    <button class="main-tab" id="tab-art" onclick="switchTab('art',this)">Art</button>
+    <button class="main-tab" id="tab-community" onclick="switchTab('community',this)">Community</button>
+    <button class="tab-icon" id="savedTabBtn" onclick="switchTab('saved',this)" title="Saved">
+      <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M17 3H7a2 2 0 0 0-2 2v16l7-3 7 3V5a2 2 0 0 0-2-2z"/></svg>
+    </button>
+  </div>
+  <div class="search-wrap">
+    <svg class="search-icon" width="18" height="18" fill="none" stroke="white" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    <input class="search-input" type="text" placeholder="Search by tag or name…" id="searchInput" oninput="filterGrid()">
+  </div>
+</div>
+
+<div class="grid-section" id="gridSection">
+  <div class="grid" id="imageGrid"></div>
+  <div class="empty" id="emptyState" style="display:none">
+    <div class="empty-icon">🐱</div>
+    <h3>No images yet!</h3>
+    <p id="emptyMsg">Go to Admin → Sync GitHub to load your images.</p>
+  </div>
+  <div class="load-more" id="loadMoreWrap" style="display:none">
+    <button class="btn-load" onclick="loadMore()">LOAD MORE...</button>
+  </div>
+</div>
+
+<div class="community-section" id="communitySection">
+  <h2 class="section-heading">🐾 Submit Your GIF</h2>
+  <p class="section-sub">Share your Chonky — all submissions are reviewed before going live.</p>
+  <div class="upload-card">
+    <div class="drop-zone" id="dropZone" onclick="document.getElementById('communityFile').click()" ondragover="dzOver(event)" ondragleave="dzLeave()" ondrop="dzDrop(event)">
+      <div style="font-size:2.5rem;margin-bottom:0.5rem;">📁</div>
+      <p>Drag & drop a GIF or image here</p>
+      <button class="btn btn-yellow" style="font-size:0.82rem;padding:9px 22px;" onclick="event.stopPropagation();document.getElementById('communityFile').click()">Choose File</button>
+    </div>
+    <input type="file" id="communityFile" accept="image/*,.gif" style="display:none" onchange="handleCommunityFile(event)">
+    <img id="communityPreview" class="preview-img" alt="preview">
+    <div class="ai-status" id="aiStatus"></div>
+    <div class="tag-preview-wrap" id="tagPreviewWrap"></div>
+    <div class="field-group">
+      <label class="field-label">Twitter / X Handle <span>(optional)</span></label>
+      <input class="form-input" id="subTwitter" type="text" placeholder="@YourHandle">
+    </div>
+    <div class="field-group">
+      <label class="field-label">Caption / Description <span>(optional)</span></label>
+      <input class="form-input" id="subCaption" type="text" placeholder="What's Chonky doing here?">
+    </div>
+    <button class="btn btn-yellow" style="width:100%;padding:13px;font-size:0.95rem;margin-top:4px;" onclick="submitCommunity()">Submit for Review 🚀</button>
+    <div class="pending-note">✋ All submissions are reviewed before going live. Thanks for keeping Chonky World wholesome!</div>
+  </div>
+</div>
+
+<div class="admin-panel" id="adminPanel">
+  <div class="admin-login-box" id="adminLoginBox">
+    <h2>🔒 Admin</h2>
+    <p style="color:rgba(255,255,255,0.55);font-size:0.85rem;margin-bottom:1rem;">Enter your admin password</p>
+    <input class="form-input" id="adminPw" type="password" placeholder="Password" onkeydown="if(event.key==='Enter')checkAdmin()" style="margin-bottom:10px;">
+    <button class="btn btn-yellow" style="width:100%;padding:11px;" onclick="checkAdmin()">Login</button>
+    <p id="adminErr" style="color:#ff6b6b;font-size:0.8rem;margin-top:8px;display:none;">Wrong password</p>
+  </div>
+  <div id="adminContent" style="display:none">
+    <div class="admin-section-title">GitHub Sync</div>
+    <div class="sync-info">
+      <h3>🐙 Sync from GitHub</h3>
+      <p style="color:rgba(255,255,255,0.65);font-size:0.85rem;margin-bottom:0.8rem;">Fetch all images from <strong>DenXSol/Chonky-media</strong>. Run this after uploading new images to GitHub.</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="btn btn-yellow" onclick="syncFromGitHub()">🔄 Sync GitHub Images</button>
+        <button class="btn btn-ghost" onclick="clearGitHubCache()">Clear Cache</button>
+      </div>
+      <div id="syncStatus" style="margin-top:10px;font-size:0.82rem;color:rgba(255,255,255,0.6);min-height:20px;"></div>
+    </div>
+    <div class="admin-section-title">Pending Submissions <span class="queue-badge" id="queueBadge">0</span></div>
+    <div id="pendingList"></div>
+    <div class="admin-section-title">Add Official Images</div>
+    <div class="upload-card" style="padding:1.5rem;">
+      <div class="drop-zone" id="adminDrop" onclick="document.getElementById('adminFile').click()" ondragover="aDzOver(event)" ondragleave="aDzLeave()" ondrop="aDzDrop(event)">
+        <div style="font-size:2rem;margin-bottom:0.4rem;">⬆️</div>
+        <p>Drag GIFs / Stickers / Art here</p>
+        <button class="btn btn-yellow" style="font-size:0.8rem;padding:8px 20px;" onclick="event.stopPropagation();document.getElementById('adminFile').click()">Choose Files</button>
+      </div>
+      <input type="file" id="adminFile" accept="image/*,.gif" multiple style="display:none" onchange="handleAdminFiles(event)">
+      <div class="field-group" style="margin-top:12px;">
+        <label class="field-label">Category</label>
+        <select class="form-input" id="adminCat">
+          <option value="gifs">GIF</option>
+          <option value="stickers">Sticker</option>
+          <option value="art">Art</option>
+        </select>
+      </div>
+      <div id="adminUploadStatus" style="font-size:0.82rem;color:rgba(255,255,255,0.55);min-height:20px;margin-top:4px;"></div>
+    </div>
+    <div class="admin-section-title">Manage Library</div>
+    <div class="admin-manage-grid" id="adminManageGrid"></div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modalBg" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <button class="modal-x" onclick="closeModal()">✕</button>
+    <div class="modal-img-bg"><img id="modalImg" src="" alt=""></div>
+    <h2 id="modalTitle">Download</h2>
+    <div class="modal-tags" id="modalTags"></div>
+    <div class="modal-rating">
+      <div class="modal-rating-label" id="modalRatingLabel">Rate this image</div>
+      <div class="modal-stars" id="modalStars">
+        <span class="modal-star" onclick="rateImage(1)" onmouseover="hoverStars(1)" onmouseout="unhoverStars()">★</span>
+        <span class="modal-star" onclick="rateImage(2)" onmouseover="hoverStars(2)" onmouseout="unhoverStars()">★</span>
+        <span class="modal-star" onclick="rateImage(3)" onmouseover="hoverStars(3)" onmouseout="unhoverStars()">★</span>
+        <span class="modal-star" onclick="rateImage(4)" onmouseover="hoverStars(4)" onmouseout="unhoverStars()">★</span>
+        <span class="modal-star" onclick="rateImage(5)" onmouseover="hoverStars(5)" onmouseout="unhoverStars()">★</span>
+      </div>
+      <div class="modal-rating-info" id="modalRatingInfo">Be the first to rate this!</div>
+    </div>
+    <div class="modal-actions">
+      <a class="btn-dl primary" id="modalDl" download>
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Download GIF
+      </a>
+      <button class="btn-dl secondary" onclick="copyImg()">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        Copy to Clipboard
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<footer>2025 © content.chonky.com — All Rights Reserved</footer>
+
+<script>
+const GITHUB_USER='DenXSol',GITHUB_REPO='Chonky-media',GITHUB_BRANCH='main';
+const ADMIN_PASSWORD='chonky2025';
+const RAW=`https://raw.githubusercontent.com/${GITHUB_USER}/${GITHUB_REPO}/${GITHUB_BRANCH}`;
+const FOLDER_MAP={gifs:'gif',stickers:'stickers',art:'art'};
+
+let githubImages=JSON.parse(localStorage.getItem('chonky_github')||'[]');
+let localImages=JSON.parse(localStorage.getItem('chonky_local')||'[]');
+let pendingImages=JSON.parse(localStorage.getItem('chonky_pending')||'[]');
+let savedIds=JSON.parse(localStorage.getItem('chonky_saved')||'[]');
+let tagCache=JSON.parse(localStorage.getItem('chonky_tags')||'{}');
+let ratings=JSON.parse(localStorage.getItem('chonky_ratings')||'{}');
+let myVotes=JSON.parse(localStorage.getItem('chonky_myvotes')||'{}');
+
+let currentTab='gifs',searchTerm='',visibleCount=24,modalSrc='',modalImgId='';
+let adminLoggedIn=false,communityFileData=null,communityFileTags=[];
+
+window.addEventListener('DOMContentLoaded',()=>{updateSavedBadge();renderGrid();});
+function getAllImages(){return[...githubImages,...localImages];}
+
+function getAvgRating(id){const r=ratings[id];return(!r||r.count===0)?0:r.total/r.count;}
+
+function rateImage(stars){
+  if(!modalImgId)return;
+  if(myVotes[modalImgId]){showToast('Already rated! ⭐');return;}
+  if(!ratings[modalImgId])ratings[modalImgId]={total:0,count:0};
+  ratings[modalImgId].total+=stars;ratings[modalImgId].count+=1;
+  myVotes[modalImgId]=stars;
+  localStorage.setItem('chonky_ratings',JSON.stringify(ratings));
+  localStorage.setItem('chonky_myvotes',JSON.stringify(myVotes));
+  updateModalRating(modalImgId);renderGrid();
+  showToast(`Rated ${stars}★ Thanks! 🎉`);
+}
+function hoverStars(n){
+  if(myVotes[modalImgId])return;
+  document.querySelectorAll('.modal-star').forEach((s,i)=>s.classList.toggle('lit',i<n));
+}
+function unhoverStars(){
+  if(myVotes[modalImgId])return;
+  document.querySelectorAll('.modal-star').forEach(s=>s.classList.remove('lit'));
+}
+function updateModalRating(id){
+  const r=ratings[id],avg=getAvgRating(id),voted=myVotes[id];
+  const stars=document.querySelectorAll('.modal-star');
+  const info=document.getElementById('modalRatingInfo');
+  const label=document.getElementById('modalRatingLabel');
+  if(voted){
+    stars.forEach((s,i)=>s.classList.toggle('lit',i<Math.round(avg)));
+    label.textContent='Your rating';
+    info.innerHTML=`<span class="modal-voted">You rated ${voted}★</span> &middot; ${r.count} vote${r.count!==1?'s':''} &middot; avg ${avg.toFixed(1)}★`;
+  } else {
+    stars.forEach(s=>s.classList.remove('lit'));
+    label.textContent='Rate this image';
+    info.textContent=(r&&r.count>0)?`${r.count} vote${r.count!==1?'s':''} · avg ${avg.toFixed(1)}★ — Click to rate!`:'Be the first to rate this!';
+  }
+}
+
+async function syncFromGitHub(){
+  const status=document.getElementById('syncStatus');
+  status.innerHTML='<span class="spin-sm"></span> Fetching from GitHub...';
+  const newImages=[];let total=0;
+  for(const[tab,folder]of Object.entries(FOLDER_MAP)){
+    try{
+      const apiUrl=`https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${folder}`;
+      const res=await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(apiUrl)}`);
+      const data=await res.json();
+      const files=JSON.parse(data.contents);
+      if(!Array.isArray(files))continue;
+      files.forEach(f=>{
+        if(f.type==='file'&&/\.(gif|png|webp|jpg|jpeg)$/i.test(f.name)){
+          const id=`gh_${tab}_${f.name.replace(/[^a-z0-9]/gi,'_')}`;
+          newImages.push({id,tag:tab,source:'github',src:`${RAW}/${folder}/${encodeURIComponent(f.name)}`,label:f.name.replace(/\.[^.]+$/,'').replace(/[-_()\[\]]/g,' ').trim(),tags:tagCache[id]||[]});
+          total++;
+        }
+      });
+      status.innerHTML=`<span class="spin-sm"></span> Found ${total} images…`;
+    }catch(e){console.warn(`Failed ${folder}:`,e);}
+  }
+  if(total===0){status.innerHTML='⚠️ Could not reach GitHub. Make sure the site is hosted on Vercel, not opened as a local file.';return;}
+  githubImages=newImages;
+  localStorage.setItem('chonky_github',JSON.stringify(githubImages));
+  status.innerHTML=`✅ Synced ${total} images!`;
+  renderGrid();renderAdminManage();showToast(`Loaded ${total} images! 🎉`);
+}
+function clearGitHubCache(){githubImages=[];localStorage.removeItem('chonky_github');renderGrid();document.getElementById('syncStatus').innerHTML='Cache cleared.';showToast('Cache cleared');}
+
+function goHome(){showGridView();document.querySelectorAll('.main-tab').forEach(t=>t.classList.remove('active'));document.getElementById('tab-gifs').classList.add('active');currentTab='gifs';visibleCount=24;renderGrid();}
+function showGridView(){document.getElementById('gridSection').style.display='block';document.getElementById('heroSection').style.display='block';document.getElementById('communitySection').classList.remove('visible');document.getElementById('adminPanel').classList.remove('visible');}
+function showCommunity(){document.getElementById('gridSection').style.display='none';document.getElementById('heroSection').style.display='none';document.getElementById('communitySection').classList.add('visible');document.getElementById('adminPanel').classList.remove('visible');window.scrollTo({top:0,behavior:'smooth'});}
+function showAdmin(){document.getElementById('gridSection').style.display='none';document.getElementById('heroSection').style.display='none';document.getElementById('communitySection').classList.remove('visible');document.getElementById('adminPanel').classList.add('visible');if(adminLoggedIn){renderAdminQueue();renderAdminManage();}window.scrollTo({top:0,behavior:'smooth'});}
+
+function switchTab(tab,btn){currentTab=tab;visibleCount=24;document.querySelectorAll('.main-tab').forEach(t=>t.classList.remove('active'));document.getElementById('savedTabBtn').classList.remove('active');if(btn){if(btn.classList.contains('tab-icon'))btn.classList.add('has-saves');else btn.classList.add('active');}showGridView();renderGrid();}
+
+function renderGrid(){
+  const grid=document.getElementById('imageGrid'),empty=document.getElementById('emptyState'),lmw=document.getElementById('loadMoreWrap');
+  let items=getAllImages().filter(img=>{
+    if(currentTab==='saved')return savedIds.includes(img.id);
+    if(currentTab==='community')return img.source==='community';
+    return img.tag===currentTab&&img.source!=='community';
+  });
+  if(searchTerm)items=items.filter(img=>(img.label||'').toLowerCase().includes(searchTerm)||(img.tags||[]).some(t=>t.toLowerCase().includes(searchTerm)));
+  items.sort((a,b)=>getAvgRating(b.id)-getAvgRating(a.id));
+  if(items.length===0){grid.innerHTML='';empty.style.display='block';lmw.style.display='none';const msgs={saved:'Tap the bookmark on any image to save it here.',community:'No community images yet — be the first!',gifs:'No GIFs yet. Go to Admin → Sync GitHub.',stickers:'No stickers yet. Go to Admin → Sync GitHub.',art:'No art yet. Go to Admin → Sync GitHub.'};document.getElementById('emptyMsg').textContent=msgs[currentTab]||'';return;}
+  empty.style.display='none';lmw.style.display=items.length>visibleCount?'block':'none';
+  grid.innerHTML=items.slice(0,visibleCount).map(img=>{
+    const avg=getAvgRating(img.id),r=ratings[img.id],voted=myVotes[img.id];
+    const starsHtml=[1,2,3,4,5].map(n=>`<span class="star ${n<=Math.round(avg)?'lit':''}" onclick="event.stopPropagation();quickRate('${img.id}',${n})" title="Rate ${n}★">★</span>`).join('');
+    const voteInfo=r&&r.count>0?`${r.count} vote${r.count!==1?'s':''}`:'No ratings';
+    return`<div class="card" onclick="openModal('${img.id}')">
+      <div class="card-img-wrap">
+        ${img.source==='community'?'<div class="community-badge">Community</div>':''}
+        <img src="${img.src}" alt="${img.label||'Chonky'}" loading="lazy" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%2260%22 font-size=%2260%22>🐱</text></svg>'">
+        <div class="card-tags">${(img.tags||[]).slice(0,4).map(t=>`<span class="tag-pill">${t}</span>`).join('')}</div>
+        <div class="card-overlay">
+          <button class="btn-save ${savedIds.includes(img.id)?'saved':''}" onclick="event.stopPropagation();toggleSave('${img.id}')">${savedIds.includes(img.id)?'★ Saved':'Save'}</button>
+          <button class="btn-bk ${savedIds.includes(img.id)?'bookmarked':''}" onclick="event.stopPropagation();toggleSave('${img.id}')"><svg width="13" height="13" fill="currentColor" viewBox="0 0 24 24"><path d="M17 3H7a2 2 0 0 0-2 2v16l7-3 7 3V5a2 2 0 0 0-2-2z"/></svg></button>
+        </div>
+      </div>
+      <div class="card-footer">
+        <div class="star-row">${starsHtml}</div>
+        ${voted?`<span class="voted-badge">Rated ${voted}★</span>`:`<span class="vote-count">${voteInfo}</span>`}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function quickRate(id,stars){
+  if(myVotes[id]){showToast('Already rated! ⭐');return;}
+  if(!ratings[id])ratings[id]={total:0,count:0};
+  ratings[id].total+=stars;ratings[id].count+=1;myVotes[id]=stars;
+  localStorage.setItem('chonky_ratings',JSON.stringify(ratings));
+  localStorage.setItem('chonky_myvotes',JSON.stringify(myVotes));
+  renderGrid();showToast(`Rated ${stars}★ 🎉`);
+}
+function loadMore(){visibleCount+=24;renderGrid();}
+function filterGrid(){searchTerm=document.getElementById('searchInput').value.toLowerCase();visibleCount=24;renderGrid();}
+
+function toggleSave(id){savedIds=savedIds.includes(id)?savedIds.filter(s=>s!==id):[...savedIds,id];localStorage.setItem('chonky_saved',JSON.stringify(savedIds));updateSavedBadge();showToast(savedIds.includes(id)?'Saved! ⭐':'Removed');renderGrid();}
+function updateSavedBadge(){document.getElementById('savedTabBtn').classList.toggle('has-saves',savedIds.length>0);}
+
+function openModal(id){
+  const img=getAllImages().find(i=>i.id===id);if(!img)return;
+  modalSrc=img.src;modalImgId=img.id;
+  document.getElementById('modalImg').src=img.src;
+  document.getElementById('modalTitle').textContent=img.label||'Chonky';
+  document.getElementById('modalTags').innerHTML=(img.tags||[]).map(t=>`<span class="modal-tag">${t}</span>`).join('');
+  const dl=document.getElementById('modalDl');dl.href=img.src;dl.download=(img.label||'chonky').replace(/\s+/g,'-')+'.gif';
+  updateModalRating(id);
+  document.getElementById('modalBg').classList.add('open');
+  if(!img.tags||img.tags.length===0)autoTagExisting(img);
+}
+function closeModal(){document.getElementById('modalBg').classList.remove('open');modalImgId='';}
+async function copyImg(){try{const r=await fetch(modalSrc);const b=await r.blob();await navigator.clipboard.write([new ClipboardItem({[b.type]:b})]);showToast('Copied! 🐾');}catch{showToast('Use Download button to save the GIF');}}
+
+async function autoTag(base64,mimeType){
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:300,system:'You are an image tagger for Chonky World. Respond ONLY with a raw JSON array of exactly 5 short lowercase tags. No explanation, no markdown.',messages:[{role:'user',content:[{type:'image',source:{type:'base64',media_type:mimeType,data:base64}},{type:'text',text:'5 tags.'}]}]})});
+    const data=await res.json();
+    const tags=JSON.parse((data.content?.[0]?.text||'[]').replace(/```json|```/g,'').trim());
+    return Array.isArray(tags)?tags.slice(0,5):[];
+  }catch{return['chonky','cute','funny','cartoon','animated'];}
+}
+async function autoTagExisting(img){
+  try{
+    const res=await fetch(img.src);const blob=await res.blob();
+    const base64=await new Promise(resolve=>{const reader=new FileReader();reader.onload=e=>resolve(e.target.result.split(',')[1]);reader.readAsDataURL(blob);});
+    const tags=await autoTag(base64,blob.type||'image/gif');
+    tagCache[img.id]=tags;localStorage.setItem('chonky_tags',JSON.stringify(tagCache));
+    const gh=githubImages.find(i=>i.id===img.id);if(gh)gh.tags=tags;
+    const lc=localImages.find(i=>i.id===img.id);if(lc)lc.tags=tags;
+    document.getElementById('modalTags').innerHTML=tags.map(t=>`<span class="modal-tag">${t}</span>`).join('');
+    renderGrid();
+  }catch(e){console.warn('Tag failed',e);}
+}
+
+function dzOver(e){e.preventDefault();document.getElementById('dropZone').classList.add('dragover');}
+function dzLeave(){document.getElementById('dropZone').classList.remove('dragover');}
+function dzDrop(e){e.preventDefault();dzLeave();const f=e.dataTransfer.files[0];if(f)processCommunityFile(f);}
+function handleCommunityFile(e){const f=e.target.files[0];if(f)processCommunityFile(f);}
+async function processCommunityFile(file){
+  if(!file.type.startsWith('image/')){showToast('Please upload an image file');return;}
+  const reader=new FileReader();
+  reader.onload=async ev=>{
+    communityFileData=ev.target.result;
+    const preview=document.getElementById('communityPreview');preview.src=communityFileData;preview.style.display='block';
+    const status=document.getElementById('aiStatus');status.innerHTML='<span class="spin-sm"></span> AI scanning your image...';
+    communityFileTags=await autoTag(communityFileData.split(',')[1],file.type);
+    status.innerHTML='✅ Tagged!';
+    document.getElementById('tagPreviewWrap').innerHTML=communityFileTags.map(t=>`<span class="tag-badge">${t}</span>`).join('');
+  };
+  reader.readAsDataURL(file);
+}
+async function submitCommunity(){
+  if(!communityFileData){showToast('Please choose an image first');return;}
+  pendingImages.push({id:'pending_'+Date.now(),src:communityFileData,tag:'gifs',source:'community_pending',label:document.getElementById('subCaption').value.trim()||'Community Submission',tags:communityFileTags,submitter:document.getElementById('subTwitter').value.trim()||'Anonymous',submittedAt:new Date().toLocaleDateString()});
+  localStorage.setItem('chonky_pending',JSON.stringify(pendingImages));
+  showToast('Submitted! ✅ Awaiting review.');
+  communityFileData=null;communityFileTags=[];
+  document.getElementById('communityPreview').style.display='none';
+  document.getElementById('tagPreviewWrap').innerHTML='';document.getElementById('aiStatus').innerHTML='';
+  document.getElementById('subTwitter').value='';document.getElementById('subCaption').value='';document.getElementById('communityFile').value='';
+  goHome();
+}
+
+function checkAdmin(){
+  if(document.getElementById('adminPw').value===ADMIN_PASSWORD){adminLoggedIn=true;document.getElementById('adminLoginBox').style.display='none';document.getElementById('adminContent').style.display='block';renderAdminQueue();renderAdminManage();}
+  else document.getElementById('adminErr').style.display='block';
+}
+function renderAdminQueue(){
+  document.getElementById('queueBadge').textContent=pendingImages.length;
+  const list=document.getElementById('pendingList');
+  if(pendingImages.length===0){list.innerHTML=`<div class="empty" style="padding:2rem"><div class="empty-icon">✨</div><h3>Queue is empty!</h3></div>`;return;}
+  list.innerHTML=pendingImages.map(img=>`<div class="pending-card"><img src="${img.src}" alt="${img.label}"><div class="pending-info"><div class="pending-name">${img.label}</div><div class="pending-sub">By: ${img.submitter} · ${img.submittedAt}</div><div class="pending-tags">${(img.tags||[]).map(t=>`<span class="tag-badge" style="font-size:0.68rem;padding:2px 8px;">${t}</span>`).join('')}</div><div class="pending-actions"><button class="btn-approve" onclick="approveImg('${img.id}')">✓ Approve</button><button class="btn-reject" onclick="rejectImg('${img.id}')">✕ Reject</button><select class="cat-select" onchange="setPendingCat('${img.id}',this.value)"><option value="gifs">GIF</option><option value="stickers">Sticker</option><option value="art">Art</option></select></div></div></div>`).join('');
+}
+function setPendingCat(id,val){const idx=pendingImages.findIndex(i=>i.id===id);if(idx>-1){pendingImages[idx].tag=val;savePending();}}
+function approveImg(id){const idx=pendingImages.findIndex(i=>i.id===id);if(idx===-1)return;const img={...pendingImages[idx],id:'com_'+Date.now(),source:'community'};localImages.unshift(img);pendingImages.splice(idx,1);saveLocal();savePending();renderAdminQueue();renderAdminManage();renderGrid();showToast('Approved! 🎉');}
+function rejectImg(id){pendingImages=pendingImages.filter(i=>i.id!==id);savePending();renderAdminQueue();showToast('Rejected');}
+
+function aDzOver(e){e.preventDefault();document.getElementById('adminDrop').classList.add('dragover');}
+function aDzLeave(){document.getElementById('adminDrop').classList.remove('dragover');}
+function aDzDrop(e){e.preventDefault();aDzLeave();handleAdminFilesRaw(Array.from(e.dataTransfer.files));}
+function handleAdminFiles(e){handleAdminFilesRaw(Array.from(e.target.files));}
+async function handleAdminFilesRaw(files){
+  const cat=document.getElementById('adminCat').value,status=document.getElementById('adminUploadStatus');
+  for(const file of files){
+    if(!file.type.startsWith('image/'))continue;
+    status.innerHTML=`<span class="spin-sm"></span> Processing ${file.name}…`;
+    const dataUrl=await readFile(file);
+    const tags=await autoTag(dataUrl.split(',')[1],file.type);
+    localImages.unshift({id:'adm_'+Date.now()+Math.random().toString(36).slice(2),src:dataUrl,tag:cat,source:'official',label:file.name.replace(/\.[^.]+$/,'').replace(/[-_()\[\]]/g,' ').trim(),tags});
+    saveLocal();renderGrid();
+  }
+  status.innerHTML=`✅ ${files.length} image${files.length!==1?'s':''} added!`;
+  renderAdminManage();document.getElementById('adminFile').value='';
+}
+function renderAdminManage(){
+  const all=getAllImages().filter(i=>i.source!=='community_pending');
+  const grid=document.getElementById('adminManageGrid');
+  if(all.length===0){grid.innerHTML='<p style="color:rgba(255,255,255,0.4);font-size:0.85rem;">No images yet.</p>';return;}
+  grid.innerHTML=all.slice(0,48).map(img=>`<div class="manage-card"><img src="${img.src}" alt="${img.label}" loading="lazy"><div class="manage-overlay">${img.source!=='github'?`<button class="btn-del" onclick="deleteImg('${img.id}')">🗑 Delete</button>`:`<span style="font-size:0.7rem;color:rgba(255,255,255,0.5);font-weight:700;">📁 GitHub</span>`}</div></div>`).join('');
+}
+function deleteImg(id){if(!confirm('Delete?'))return;localImages=localImages.filter(i=>i.id!==id);saveLocal();renderGrid();renderAdminManage();showToast('Deleted');}
+
+function readFile(file){return new Promise(res=>{const r=new FileReader();r.onload=e=>res(e.target.result);r.readAsDataURL(file);});}
+function saveLocal(){try{localStorage.setItem('chonky_local',JSON.stringify(localImages));}catch(e){showToast('Storage full!');}}
+function savePending(){localStorage.setItem('chonky_pending',JSON.stringify(pendingImages));}
+let _tt;
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(_tt);_tt=setTimeout(()=>t.classList.remove('show'),2600);}
+</script>
+
+<div class="welcome-bg" id="welcomeBg">
+  <div class="welcome-modal">
+    <div class="welcome-logo">🐾 Welcome to Chonky Studio!</div>
+    <div class="welcome-tagline">Your home for all things Chonky — here's how it works</div>
+
+    <div class="welcome-section">
+      <h3>⭐ Rating System</h3>
+      <div class="welcome-item"><div class="welcome-dot"></div><div>Rate any image 1–5 stars — either on the card itself or inside the image popup</div></div>
+      <div class="welcome-item"><div class="welcome-dot"></div><div>Top rated images automatically float to the top of each category</div></div>
+      <div class="welcome-item"><div class="welcome-dot"></div><div>One vote per browser — no farming!</div></div>
+    </div>
+
+    <div class="welcome-section">
+      <h3>📂 Categories</h3>
+      <div class="welcome-cat">
+        <div class="welcome-cat-card">
+          <div class="cat-icon">🎬</div>
+          <div class="cat-name">GIFs</div>
+          <div class="cat-desc">Animated Chonky GIFs — reactions, vibes & more</div>
+        </div>
+        <div class="welcome-cat-card">
+          <div class="cat-icon">🏷️</div>
+          <div class="cat-name">Stickers</div>
+          <div class="cat-desc">Static Chonky stickers ready to use anywhere</div>
+        </div>
+        <div class="welcome-cat-card">
+          <div class="cat-icon">🎨</div>
+          <div class="cat-name">Art</div>
+          <div class="cat-desc">Full illustrations and artwork featuring Chonky</div>
+        </div>
+        <div class="welcome-cat-card">
+          <div class="cat-icon">👥</div>
+          <div class="cat-name">Community</div>
+          <div class="cat-desc">Fan submissions approved by the Chonky team</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="welcome-community">
+      <h4>👥 How to Submit to Community</h4>
+      <div class="welcome-step"><div class="welcome-step-num">1</div><div>Click <strong>+ Submit</strong> in the top right corner</div></div>
+      <div class="welcome-step"><div class="welcome-step-num">2</div><div>Upload your GIF or image — AI will auto-tag it</div></div>
+      <div class="welcome-step"><div class="welcome-step-num">3</div><div>Add your Twitter handle and a caption (optional)</div></div>
+      <div class="welcome-step"><div class="welcome-step-num">4</div><div>Hit Submit — the Chonky team will review it</div></div>
+      <div class="welcome-step"><div class="welcome-step-num">5</div><div>Once approved it goes live in the Community tab!</div></div>
+    </div>
+
+    <button class="btn btn-yellow" style="width:100%;padding:13px;font-size:1rem;" onclick="closeWelcome()">Let's Go! 🐾</button>
+    <p style="text-align:center;font-size:0.75rem;color:rgba(255,255,255,0.35);margin-top:10px;font-weight:600;">This message only shows once</p>
+  </div>
+</div>
+<script>
+function closeWelcome(){
+  document.getElementById('welcomeBg').style.display='none';
+  localStorage.setItem('chonky_welcomed','1');
+}
+// Only show on first visit
+if(!localStorage.getItem('chonky_welcomed')){
+  document.getElementById('welcomeBg').style.display='flex';
+} else {
+  document.getElementById('welcomeBg').style.display='none';
+}
+</script></body>
+</html>
