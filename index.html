@@ -9,11 +9,11 @@
 :root{--red:#E8231A;--red-dark:#C41A12;--yellow:#FFD93D;--yellow-dark:#F0C000;--black:#111;--radius:16px;--card-bg:rgba(0,0,0,0.18);--card-hover:rgba(0,0,0,0.30);}
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:'Nunito',sans-serif;background:var(--red);min-height:100vh;color:white;overflow-x:hidden;}
-header{position:sticky;top:0;z-index:200;background:var(--red-dark);border-bottom:3px solid rgba(0,0,0,0.2);padding:0 1.5rem;height:60px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 3px 20px rgba(0,0,0,0.3);}
+header{position:sticky;top:0;z-index:200;background:var(--red-dark);border-bottom:3px solid rgba(0,0,0,0.2);padding:0 1.5rem;height:72px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 3px 20px rgba(0,0,0,0.3);}
 .logo{font-family:'Boogaloo',cursive;font-size:1.7rem;color:var(--yellow);text-shadow:2px 2px 0 rgba(0,0,0,0.2);cursor:pointer;}
 .logo span{color:rgba(255,255,255,0.8);font-size:1.1rem;}
 .header-btns{display:flex;gap:8px;align-items:center;}
-.btn{font-family:'Nunito',sans-serif;font-weight:800;font-size:0.82rem;padding:8px 18px;border-radius:50px;border:none;cursor:pointer;transition:all 0.18s;letter-spacing:0.4px;text-transform:uppercase;}
+.btn{font-family:'Nunito',sans-serif;font-weight:800;font-size:0.88rem;padding:8px 18px;border-radius:50px;border:none;cursor:pointer;transition:all 0.18s;letter-spacing:0.4px;text-transform:uppercase;}
 .btn-ghost{background:rgba(255,255,255,0.12);color:white;border:2px solid rgba(255,255,255,0.25);}
 .btn-ghost:hover{background:rgba(255,255,255,0.2);}
 .btn-yellow{background:var(--yellow);color:var(--black);box-shadow:0 3px 0 var(--yellow-dark);}
@@ -165,7 +165,7 @@ footer{position:relative;z-index:1;text-align:center;padding:1.5rem;border-top:2
 </head>
 <body>
 <header>
-  <div class="logo" onclick="goHome()">CHONKY<span>.content</span></div>
+  <div class="logo" onclick="goHome()"><img src="https://raw.githubusercontent.com/DenXSol/chonky-site/main/chonkylogo2.png" alt="Chonky" style="height:44px;width:auto;vertical-align:middle;margin-right:6px;"><span style="font-family:Boogaloo,cursive;font-size:1.4rem;color:rgba(255,255,255,0.85);font-weight:400;">.content</span></div>
   <div class="header-btns">
     <button class="btn btn-ghost" onclick="showAdmin()">Admin</button>
     <button class="btn btn-yellow" onclick="showCommunity()">+ Submit</button>
@@ -174,7 +174,7 @@ footer{position:relative;z-index:1;text-align:center;padding:1.5rem;border-top:2
 
 <div class="hero" id="heroSection">
   <img src="https://raw.githubusercontent.com/DenXSol/Chonky-media/main/chonklogo.png" alt="Chonky Studio" style="max-width:440px;width:90%;height:auto;margin:0 auto 0.4rem;display:block;" onerror="this.style.display='none';document.getElementById('logoFallback').style.display='block'"><h1 id="logoFallback" style="display:none;font-family:Boogaloo,cursive;font-size:clamp(2.8rem,7vw,5rem);text-shadow:3px 3px 0 rgba(0,0,0,0.15);line-height:1;margin-bottom:0.3rem;">Chonky Studio</h1>
-  <p>Download & share your favourite Chonky GIFs, stickers and art</p>
+  <p>DOWNLOAD & SHARE YOUR FAVOURITE CHONKY GIFs, STICKERS AND ART</p>
   <div class="main-tabs">
     <button class="main-tab active" id="tab-gifs" onclick="switchTab('gifs',this)">GIFs</button>
     <button class="main-tab" id="tab-stickers" onclick="switchTab('stickers',this)">Stickers</button>
@@ -186,7 +186,7 @@ footer{position:relative;z-index:1;text-align:center;padding:1.5rem;border-top:2
   </div>
   <div class="search-wrap">
     <svg class="search-icon" width="18" height="18" fill="none" stroke="white" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-    <input class="search-input" type="text" placeholder="Search by tag or name…" id="searchInput" oninput="filterGrid()">
+    <input class="search-input" type="text" placeholder="SEARCH BY TAG OR NAME…" id="searchInput" oninput="filterGrid()">
   </div>
 </div>
 
@@ -194,8 +194,8 @@ footer{position:relative;z-index:1;text-align:center;padding:1.5rem;border-top:2
   <div class="grid" id="imageGrid"></div>
   <div class="empty" id="emptyState" style="display:none">
     <div class="empty-icon">🐱</div>
-    <h3>No images yet!</h3>
-    <p id="emptyMsg">Go to Admin → Sync GitHub to load your images.</p>
+    <h3>NO IMAGES YET!</h3>
+    <p id="emptyMsg">GO TO ADMIN → SYNC GITHUB TO LOAD YOUR IMAGES.</p>
   </div>
   <div class="load-more" id="loadMoreWrap" style="display:none">
     <button class="btn-load" onclick="loadMore()">LOAD MORE...</button>
@@ -203,62 +203,62 @@ footer{position:relative;z-index:1;text-align:center;padding:1.5rem;border-top:2
 </div>
 
 <div class="community-section" id="communitySection">
-  <h2 class="section-heading">🐾 Submit Your GIF</h2>
-  <p class="section-sub">Share your Chonky — all submissions are reviewed before going live.</p>
+  <h2 class="section-heading">🐾 SUBMIT YOUR GIF</h2>
+  <p class="section-sub">SHARE YOUR CHONKY — ALL SUBMISSIONS ARE REVIEWED BEFORE GOING LIVE.</p>
   <div class="upload-card">
     <div class="drop-zone" id="dropZone" onclick="document.getElementById('communityFile').click()" ondragover="dzOver(event)" ondragleave="dzLeave()" ondrop="dzDrop(event)">
       <div style="font-size:2.5rem;margin-bottom:0.5rem;">📁</div>
       <p>Drag & drop a GIF or image here</p>
-      <button class="btn btn-yellow" style="font-size:0.82rem;padding:9px 22px;" onclick="event.stopPropagation();document.getElementById('communityFile').click()">Choose File</button>
+      <button class="btn btn-yellow" style="font-size:0.82rem;padding:9px 22px;" onclick="event.stopPropagation();document.getElementById('communityFile').click()">CHOOSE FILE</button>
     </div>
     <input type="file" id="communityFile" accept="image/*,.gif" style="display:none" onchange="handleCommunityFile(event)">
     <img id="communityPreview" class="preview-img" alt="preview">
     <div class="ai-status" id="aiStatus"></div>
     <div class="tag-preview-wrap" id="tagPreviewWrap"></div>
     <div class="field-group">
-      <label class="field-label">Twitter / X Handle <span>(optional)</span></label>
-      <input class="form-input" id="subTwitter" type="text" placeholder="@YourHandle">
+      <label class="field-label">TWITTER / X HANDLE <span>(OPTIONAL)</span></label>
+      <input class="form-input" id="subTwitter" type="text" placeholder="@YOURHANDLE">
     </div>
     <div class="field-group">
-      <label class="field-label">Caption / Description <span>(optional)</span></label>
-      <input class="form-input" id="subCaption" type="text" placeholder="What's Chonky doing here?">
+      <label class="field-label">CAPTION / DESCRIPTION <span>(OPTIONAL)</span></label>
+      <input class="form-input" id="subCaption" type="text" placeholder="WHAT'S CHONKY DOING HERE?">
     </div>
-    <button class="btn btn-yellow" style="width:100%;padding:13px;font-size:0.95rem;margin-top:4px;" onclick="submitCommunity()">Submit for Review 🚀</button>
-    <div class="pending-note">✋ All submissions are reviewed before going live. Thanks for keeping Chonky World wholesome!</div>
+    <button class="btn btn-yellow" style="width:100%;padding:13px;font-size:0.95rem;margin-top:4px;" onclick="submitCommunity()">SUBMIT FOR REVIEW 🚀</button>
+    <div class="pending-note">✋ ALL SUBMISSIONS ARE REVIEWED BEFORE GOING LIVE. THANKS FOR KEEPING CHONKY WORLD WHOLESOME!</div>
   </div>
 </div>
 
 <div class="admin-panel" id="adminPanel">
   <div class="admin-login-box" id="adminLoginBox">
     <h2>🔒 Admin</h2>
-    <p style="color:rgba(255,255,255,0.55);font-size:0.85rem;margin-bottom:1rem;">Enter your admin password</p>
+    <p style="color:rgba(255,255,255,0.55);font-size:0.85rem;margin-bottom:1rem;">ENTER YOUR ADMIN PASSWORD</p>
     <input class="form-input" id="adminPw" type="password" placeholder="Password" onkeydown="if(event.key==='Enter')checkAdmin()" style="margin-bottom:10px;">
     <button class="btn btn-yellow" style="width:100%;padding:11px;" onclick="checkAdmin()">Login</button>
-    <p id="adminErr" style="color:#ff6b6b;font-size:0.8rem;margin-top:8px;display:none;">Wrong password</p>
+    <p id="adminErr" style="color:#ff6b6b;font-size:0.8rem;margin-top:8px;display:none;">WRONG PASSWORD</p>
   </div>
   <div id="adminContent" style="display:none">
-    <div class="admin-section-title">GitHub Sync</div>
+    <div class="admin-section-title">GITHUB SYNC</div>
     <div class="sync-info">
-      <h3>🐙 Sync from GitHub</h3>
-      <p style="color:rgba(255,255,255,0.65);font-size:0.85rem;margin-bottom:0.8rem;">Fetch all images from <strong>DenXSol/Chonky-media</strong>. Run this after uploading new images to GitHub.</p>
+      <h3>🐙 SYNC FROM GITHUB</h3>
+      <p style="color:rgba(255,255,255,0.65);font-size:0.85rem;margin-bottom:0.8rem;">FETCH ALL IMAGES FROM <strong>DenXSol/Chonky-media</strong>. RUN THIS AFTER UPLOADING NEW IMAGES TO GITHUB.</p>
       <div style="display:flex;gap:8px;flex-wrap:wrap;">
         <button class="btn btn-yellow" onclick="syncFromGitHub()">🔄 Sync GitHub Images</button>
         <button class="btn btn-ghost" onclick="clearGitHubCache()">Clear Cache</button>
       </div>
       <div id="syncStatus" style="margin-top:10px;font-size:0.82rem;color:rgba(255,255,255,0.6);min-height:20px;"></div>
     </div>
-    <div class="admin-section-title">Pending Submissions <span class="queue-badge" id="queueBadge">0</span></div>
+    <div class="admin-section-title">PENDING SUBMISSIONS <span class="queue-badge" id="queueBadge">0</span></div>
     <div id="pendingList"></div>
-    <div class="admin-section-title">Add Official Images</div>
+    <div class="admin-section-title">ADD OFFICIAL IMAGES</div>
     <div class="upload-card" style="padding:1.5rem;">
       <div class="drop-zone" id="adminDrop" onclick="document.getElementById('adminFile').click()" ondragover="aDzOver(event)" ondragleave="aDzLeave()" ondrop="aDzDrop(event)">
         <div style="font-size:2rem;margin-bottom:0.4rem;">⬆️</div>
-        <p>Drag GIFs / Stickers / Art here</p>
-        <button class="btn btn-yellow" style="font-size:0.8rem;padding:8px 20px;" onclick="event.stopPropagation();document.getElementById('adminFile').click()">Choose Files</button>
+        <p>DRAG GIFs / STICKERS / ART HERE</p>
+        <button class="btn btn-yellow" style="font-size:0.8rem;padding:8px 20px;" onclick="event.stopPropagation();document.getElementById('adminFile').click()">CHOOSE FILEs</button>
       </div>
       <input type="file" id="adminFile" accept="image/*,.gif" multiple style="display:none" onchange="handleAdminFiles(event)">
       <div class="field-group" style="margin-top:12px;">
-        <label class="field-label">Category</label>
+        <label class="field-label">CATEGORY</label>
         <select class="form-input" id="adminCat">
           <option value="gifs">GIF</option>
           <option value="stickers">Sticker</option>
@@ -267,7 +267,7 @@ footer{position:relative;z-index:1;text-align:center;padding:1.5rem;border-top:2
       </div>
       <div id="adminUploadStatus" style="font-size:0.82rem;color:rgba(255,255,255,0.55);min-height:20px;margin-top:4px;"></div>
     </div>
-    <div class="admin-section-title">Manage Library</div>
+    <div class="admin-section-title">MANAGE LIBRARY</div>
     <div class="admin-manage-grid" id="adminManageGrid"></div>
   </div>
 </div>
@@ -279,7 +279,7 @@ footer{position:relative;z-index:1;text-align:center;padding:1.5rem;border-top:2
     <h2 id="modalTitle">Download</h2>
     <div class="modal-tags" id="modalTags"></div>
     <div class="modal-rating">
-      <div class="modal-rating-label" id="modalRatingLabel">Rate this image</div>
+      <div class="modal-rating-label" id="modalRatingLabel">RATE THIS IMAGE</div>
       <div class="modal-stars" id="modalStars">
         <span class="modal-star" onclick="rateImage(1)" onmouseover="hoverStars(1)" onmouseout="unhoverStars()">★</span>
         <span class="modal-star" onclick="rateImage(2)" onmouseover="hoverStars(2)" onmouseout="unhoverStars()">★</span>
@@ -287,23 +287,23 @@ footer{position:relative;z-index:1;text-align:center;padding:1.5rem;border-top:2
         <span class="modal-star" onclick="rateImage(4)" onmouseover="hoverStars(4)" onmouseout="unhoverStars()">★</span>
         <span class="modal-star" onclick="rateImage(5)" onmouseover="hoverStars(5)" onmouseout="unhoverStars()">★</span>
       </div>
-      <div class="modal-rating-info" id="modalRatingInfo">Be the first to rate this!</div>
+      <div class="modal-rating-info" id="modalRatingInfo">BE THE FIRST TO RATE THIS!</div>
     </div>
     <div class="modal-actions">
       <a class="btn-dl primary" id="modalDl" download>
         <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-        Download GIF
+        DOWNLOAD GIF
       </a>
       <button class="btn-dl secondary" onclick="copyImg()">
         <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-        Copy to Clipboard
+        COPY TO CLIPBOARD
       </button>
     </div>
   </div>
 </div>
 
 <div class="toast" id="toast"></div>
-<footer>2025 © content.chonky.com — All Rights Reserved</footer>
+<footer>2025 © CONTENT.CHONKY.COM — ALL RIGHTS RESERVED</footer>
 
 <script>
 const GITHUB_USER='DenXSol',GITHUB_REPO='Chonky-media',GITHUB_BRANCH='main';
@@ -329,7 +329,7 @@ function getAvgRating(id){const r=ratings[id];return(!r||r.count===0)?0:r.total/
 
 function rateImage(stars){
   if(!modalImgId)return;
-  if(myVotes[modalImgId]){showToast('Already rated! ⭐');return;}
+  if(myVotes[modalImgId]){showToast('ALREADY RATED! ⭐');return;}
   if(!ratings[modalImgId])ratings[modalImgId]={total:0,count:0};
   ratings[modalImgId].total+=stars;ratings[modalImgId].count+=1;
   myVotes[modalImgId]=stars;
@@ -353,12 +353,12 @@ function updateModalRating(id){
   const label=document.getElementById('modalRatingLabel');
   if(voted){
     stars.forEach((s,i)=>s.classList.toggle('lit',i<Math.round(avg)));
-    label.textContent='Your rating';
+    label.textContent='YOUR RATING';
     info.innerHTML=`<span class="modal-voted">You rated ${voted}★</span> &middot; ${r.count} vote${r.count!==1?'s':''} &middot; avg ${avg.toFixed(1)}★`;
   } else {
     stars.forEach(s=>s.classList.remove('lit'));
-    label.textContent='Rate this image';
-    info.textContent=(r&&r.count>0)?`${r.count} vote${r.count!==1?'s':''} · avg ${avg.toFixed(1)}★ — Click to rate!`:'Be the first to rate this!';
+    label.textContent='RATE THIS IMAGE';
+    info.textContent=(r&&r.count>0)?`${r.count} vote${r.count!==1?'s':''} · avg ${avg.toFixed(1)}★ — Click to rate!`:'BE THE FIRST TO RATE THIS!';
   }
 }
 
@@ -389,7 +389,7 @@ async function syncFromGitHub(){
   status.innerHTML=`✅ Synced ${total} images!`;
   renderGrid();renderAdminManage();showToast(`Loaded ${total} images! 🎉`);
 }
-function clearGitHubCache(){githubImages=[];localStorage.removeItem('chonky_github');renderGrid();document.getElementById('syncStatus').innerHTML='Cache cleared.';showToast('Cache cleared');}
+function clearGitHubCache(){githubImages=[];localStorage.removeItem('chonky_github');renderGrid();document.getElementById('syncStatus').innerHTML='CACHE CLEARED.';showToast('CACHE CLEARED');}
 
 function goHome(){showGridView();document.querySelectorAll('.main-tab').forEach(t=>t.classList.remove('active'));document.getElementById('tab-gifs').classList.add('active');currentTab='gifs';visibleCount=24;renderGrid();}
 function showGridView(){document.getElementById('gridSection').style.display='block';document.getElementById('heroSection').style.display='block';document.getElementById('communitySection').classList.remove('visible');document.getElementById('adminPanel').classList.remove('visible');}
@@ -407,7 +407,7 @@ function renderGrid(){
   });
   if(searchTerm)items=items.filter(img=>(img.label||'').toLowerCase().includes(searchTerm)||(img.tags||[]).some(t=>t.toLowerCase().includes(searchTerm)));
   items.sort((a,b)=>getAvgRating(b.id)-getAvgRating(a.id));
-  if(items.length===0){grid.innerHTML='';empty.style.display='block';lmw.style.display='none';const msgs={saved:'Tap the bookmark on any image to save it here.',community:'No community images yet — be the first!',gifs:'No GIFs yet. Go to Admin → Sync GitHub.',stickers:'No stickers yet. Go to Admin → Sync GitHub.',art:'No art yet. Go to Admin → Sync GitHub.'};document.getElementById('emptyMsg').textContent=msgs[currentTab]||'';return;}
+  if(items.length===0){grid.innerHTML='';empty.style.display='block';lmw.style.display='none';const msgs={saved:'TAP THE BOOKMARK ON ANY IMAGE TO SAVE IT HERE.',community:'NO COMMUNITY IMAGES YET — BE THE FIRST!',gifs:'GO TO ADMIN → SYNC GITHUB TO LOAD GIFs.',stickers:'GO TO ADMIN → SYNC GITHUB TO LOAD STICKERS.',art:'GO TO ADMIN → SYNC GITHUB TO LOAD ART.'};document.getElementById('emptyMsg').textContent=msgs[currentTab]||'';return;}
   empty.style.display='none';lmw.style.display=items.length>visibleCount?'block':'none';
   grid.innerHTML=items.slice(0,visibleCount).map(img=>{
     const avg=getAvgRating(img.id),r=ratings[img.id],voted=myVotes[img.id];
@@ -419,7 +419,7 @@ function renderGrid(){
         <img src="${img.src}" alt="${img.label||'Chonky'}" loading="lazy" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%2260%22 font-size=%2260%22>🐱</text></svg>'">
         <div class="card-tags">${(img.tags||[]).slice(0,4).map(t=>`<span class="tag-pill">${t}</span>`).join('')}</div>
         <div class="card-overlay">
-          <button class="btn-save ${savedIds.includes(img.id)?'saved':''}" onclick="event.stopPropagation();toggleSave('${img.id}')">${savedIds.includes(img.id)?'★ Saved':'Save'}</button>
+          <button class="btn-save ${savedIds.includes(img.id)?'saved':''}" onclick="event.stopPropagation();toggleSave('${img.id}')">${savedIds.includes(img.id)?'★ SAVED':'SAVE'}</button>
           <button class="btn-bk ${savedIds.includes(img.id)?'bookmarked':''}" onclick="event.stopPropagation();toggleSave('${img.id}')"><svg width="13" height="13" fill="currentColor" viewBox="0 0 24 24"><path d="M17 3H7a2 2 0 0 0-2 2v16l7-3 7 3V5a2 2 0 0 0-2-2z"/></svg></button>
         </div>
       </div>
@@ -432,7 +432,7 @@ function renderGrid(){
 }
 
 function quickRate(id,stars){
-  if(myVotes[id]){showToast('Already rated! ⭐');return;}
+  if(myVotes[id]){showToast('ALREADY RATED! ⭐');return;}
   if(!ratings[id])ratings[id]={total:0,count:0};
   ratings[id].total+=stars;ratings[id].count+=1;myVotes[id]=stars;
   localStorage.setItem('chonky_ratings',JSON.stringify(ratings));
@@ -457,7 +457,7 @@ function openModal(id){
   if(!img.tags||img.tags.length===0)autoTagExisting(img);
 }
 function closeModal(){document.getElementById('modalBg').classList.remove('open');modalImgId='';}
-async function copyImg(){try{const r=await fetch(modalSrc);const b=await r.blob();await navigator.clipboard.write([new ClipboardItem({[b.type]:b})]);showToast('Copied! 🐾');}catch{showToast('Use Download button to save the GIF');}}
+async function copyImg(){try{const r=await fetch(modalSrc);const b=await r.blob();await navigator.clipboard.write([new ClipboardItem({[b.type]:b})]);showToast('COPIED! 🐾');}catch{showToast('Use Download button to save the GIF');}}
 
 async function autoTag(base64,mimeType){
   try{
@@ -485,7 +485,7 @@ function dzLeave(){document.getElementById('dropZone').classList.remove('dragove
 function dzDrop(e){e.preventDefault();dzLeave();const f=e.dataTransfer.files[0];if(f)processCommunityFile(f);}
 function handleCommunityFile(e){const f=e.target.files[0];if(f)processCommunityFile(f);}
 async function processCommunityFile(file){
-  if(!file.type.startsWith('image/')){showToast('Please upload an image file');return;}
+  if(!file.type.startsWith('image/')){showToast('PLEASE UPLOAD AN IMAGE FILE');return;}
   const reader=new FileReader();
   reader.onload=async ev=>{
     communityFileData=ev.target.result;
@@ -498,7 +498,7 @@ async function processCommunityFile(file){
   reader.readAsDataURL(file);
 }
 async function submitCommunity(){
-  if(!communityFileData){showToast('Please choose an image first');return;}
+  if(!communityFileData){showToast('PLEASE CHOOSE AN IMAGE FIRST');return;}
   pendingImages.push({id:'pending_'+Date.now(),src:communityFileData,tag:'gifs',source:'community_pending',label:document.getElementById('subCaption').value.trim()||'Community Submission',tags:communityFileTags,submitter:document.getElementById('subTwitter').value.trim()||'Anonymous',submittedAt:new Date().toLocaleDateString()});
   localStorage.setItem('chonky_pending',JSON.stringify(pendingImages));
   showToast('Submitted! ✅ Awaiting review.');
@@ -520,8 +520,8 @@ function renderAdminQueue(){
   list.innerHTML=pendingImages.map(img=>`<div class="pending-card"><img src="${img.src}" alt="${img.label}"><div class="pending-info"><div class="pending-name">${img.label}</div><div class="pending-sub">By: ${img.submitter} · ${img.submittedAt}</div><div class="pending-tags">${(img.tags||[]).map(t=>`<span class="tag-badge" style="font-size:0.68rem;padding:2px 8px;">${t}</span>`).join('')}</div><div class="pending-actions"><button class="btn-approve" onclick="approveImg('${img.id}')">✓ Approve</button><button class="btn-reject" onclick="rejectImg('${img.id}')">✕ Reject</button><select class="cat-select" onchange="setPendingCat('${img.id}',this.value)"><option value="gifs">GIF</option><option value="stickers">Sticker</option><option value="art">Art</option></select></div></div></div>`).join('');
 }
 function setPendingCat(id,val){const idx=pendingImages.findIndex(i=>i.id===id);if(idx>-1){pendingImages[idx].tag=val;savePending();}}
-function approveImg(id){const idx=pendingImages.findIndex(i=>i.id===id);if(idx===-1)return;const img={...pendingImages[idx],id:'com_'+Date.now(),source:'community'};localImages.unshift(img);pendingImages.splice(idx,1);saveLocal();savePending();renderAdminQueue();renderAdminManage();renderGrid();showToast('Approved! 🎉');}
-function rejectImg(id){pendingImages=pendingImages.filter(i=>i.id!==id);savePending();renderAdminQueue();showToast('Rejected');}
+function approveImg(id){const idx=pendingImages.findIndex(i=>i.id===id);if(idx===-1)return;const img={...pendingImages[idx],id:'com_'+Date.now(),source:'community'};localImages.unshift(img);pendingImages.splice(idx,1);saveLocal();savePending();renderAdminQueue();renderAdminManage();renderGrid();showToast('APPROVED! 🎉');}
+function rejectImg(id){pendingImages=pendingImages.filter(i=>i.id!==id);savePending();renderAdminQueue();showToast('REJECTED');}
 
 function aDzOver(e){e.preventDefault();document.getElementById('adminDrop').classList.add('dragover');}
 function aDzLeave(){document.getElementById('adminDrop').classList.remove('dragover');}
@@ -546,10 +546,10 @@ function renderAdminManage(){
   if(all.length===0){grid.innerHTML='<p style="color:rgba(255,255,255,0.4);font-size:0.85rem;">No images yet.</p>';return;}
   grid.innerHTML=all.slice(0,48).map(img=>`<div class="manage-card"><img src="${img.src}" alt="${img.label}" loading="lazy"><div class="manage-overlay">${img.source!=='github'?`<button class="btn-del" onclick="deleteImg('${img.id}')">🗑 Delete</button>`:`<span style="font-size:0.7rem;color:rgba(255,255,255,0.5);font-weight:700;">📁 GitHub</span>`}</div></div>`).join('');
 }
-function deleteImg(id){if(!confirm('Delete?'))return;localImages=localImages.filter(i=>i.id!==id);saveLocal();renderGrid();renderAdminManage();showToast('Deleted');}
+function deleteImg(id){if(!confirm('Delete?'))return;localImages=localImages.filter(i=>i.id!==id);saveLocal();renderGrid();renderAdminManage();showToast('DELETED');}
 
 function readFile(file){return new Promise(res=>{const r=new FileReader();r.onload=e=>res(e.target.result);r.readAsDataURL(file);});}
-function saveLocal(){try{localStorage.setItem('chonky_local',JSON.stringify(localImages));}catch(e){showToast('Storage full!');}}
+function saveLocal(){try{localStorage.setItem('chonky_local',JSON.stringify(localImages));}catch(e){showToast('STORAGE FULL!');}}
 function savePending(){localStorage.setItem('chonky_pending',JSON.stringify(pendingImages));}
 let _tt;
 function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(_tt);_tt=setTimeout(()=>t.classList.remove('show'),2600);}
@@ -557,53 +557,53 @@ function showToast(msg){const t=document.getElementById('toast');t.textContent=m
 
 <div class="welcome-bg" id="welcomeBg">
   <div class="welcome-modal">
-    <div class="welcome-logo">🐾 Welcome to Chonky Studio!</div>
-    <div class="welcome-tagline">Your home for all things Chonky — here's how it works</div>
+    <div class="welcome-logo">🐾 WELCOME TO CHONKY STUDIO!</div>
+    <div class="welcome-tagline">YOUR HOME FOR ALL THINGS CHONKY — HERE'S HOW IT WORKS</div>
 
     <div class="welcome-section">
-      <h3>⭐ Rating System</h3>
-      <div class="welcome-item"><div class="welcome-dot"></div><div>Rate any image 1–5 stars — either on the card itself or inside the image popup</div></div>
-      <div class="welcome-item"><div class="welcome-dot"></div><div>Top rated images automatically float to the top of each category</div></div>
-      <div class="welcome-item"><div class="welcome-dot"></div><div>One vote per browser — no farming!</div></div>
+      <h3>⭐ RATING SYSTEM</h3>
+      <div class="welcome-item"><div class="welcome-dot"></div><div>RATE ANY IMAGE 1–5 STARS — EITHER ON THE CARD ITSELF OR INSIDE THE IMAGE POPUP</div></div>
+      <div class="welcome-item"><div class="welcome-dot"></div><div>TOP RATED IMAGES AUTOMATICALLY FLOAT TO THE TOP OF EACH CATEGORY</div></div>
+      <div class="welcome-item"><div class="welcome-dot"></div><div>ONE VOTE PER BROWSER — NO FARMING!</div></div>
     </div>
 
     <div class="welcome-section">
-      <h3>📂 Categories</h3>
+      <h3>📂 CATEGORIES</h3>
       <div class="welcome-cat">
         <div class="welcome-cat-card">
           <div class="cat-icon">🎬</div>
           <div class="cat-name">GIFs</div>
-          <div class="cat-desc">Animated Chonky GIFs — reactions, vibes & more</div>
+          <div class="cat-desc">ANIMATED CHONKY GIFs — REACTIONS, VIBES & MORE</div>
         </div>
         <div class="welcome-cat-card">
           <div class="cat-icon">🏷️</div>
           <div class="cat-name">Stickers</div>
-          <div class="cat-desc">Static Chonky stickers ready to use anywhere</div>
+          <div class="cat-desc">STATIC CHONKY STICKERS READY TO USE ANYWHERE</div>
         </div>
         <div class="welcome-cat-card">
           <div class="cat-icon">🎨</div>
           <div class="cat-name">Art</div>
-          <div class="cat-desc">Full illustrations and artwork featuring Chonky</div>
+          <div class="cat-desc">FULL ILLUSTRATIONS AND ARTWORK FEATURING CHONKY</div>
         </div>
         <div class="welcome-cat-card">
           <div class="cat-icon">👥</div>
           <div class="cat-name">Community</div>
-          <div class="cat-desc">Fan submissions approved by the Chonky team</div>
+          <div class="cat-desc">FAN SUBMISSIONS APPROVED BY THE CHONKY TEAM</div>
         </div>
       </div>
     </div>
 
     <div class="welcome-community">
-      <h4>👥 How to Submit to Community</h4>
-      <div class="welcome-step"><div class="welcome-step-num">1</div><div>Click <strong>+ Submit</strong> in the top right corner</div></div>
-      <div class="welcome-step"><div class="welcome-step-num">2</div><div>Upload your GIF or image — AI will auto-tag it</div></div>
-      <div class="welcome-step"><div class="welcome-step-num">3</div><div>Add your Twitter handle and a caption (optional)</div></div>
-      <div class="welcome-step"><div class="welcome-step-num">4</div><div>Hit Submit — the Chonky team will review it</div></div>
-      <div class="welcome-step"><div class="welcome-step-num">5</div><div>Once approved it goes live in the Community tab!</div></div>
+      <h4>👥 HOW TO SUBMIT TO COMMUNITY</h4>
+      <div class="welcome-step"><div class="welcome-step-num">1</div><div>CLICK <strong>+ SUBMIT</strong> IN THE TOP RIGHT CORNER</div></div>
+      <div class="welcome-step"><div class="welcome-step-num">2</div><div>UPLOAD YOUR GIF OR IMAGE — AI WILL AUTO-TAG IT</div></div>
+      <div class="welcome-step"><div class="welcome-step-num">3</div><div>ADD YOUR TWITTER HANDLE AND A CAPTION (OPTIONAL)</div></div>
+      <div class="welcome-step"><div class="welcome-step-num">4</div><div>HIT SUBMIT — THE CHONKY TEAM WILL REVIEW IT</div></div>
+      <div class="welcome-step"><div class="welcome-step-num">5</div><div>ONCE APPROVED IT GOES LIVE IN THE COMMUNITY TAB!</div></div>
     </div>
 
-    <button class="btn btn-yellow" style="width:100%;padding:13px;font-size:1rem;" onclick="closeWelcome()">Let's Go! 🐾</button>
-    <p style="text-align:center;font-size:0.75rem;color:rgba(255,255,255,0.35);margin-top:10px;font-weight:600;">This message only shows once</p>
+    <button class="btn btn-yellow" style="width:100%;padding:13px;font-size:1rem;" onclick="closeWelcome()">LET'S GO! 🐾</button>
+    <p style="text-align:center;font-size:0.75rem;color:rgba(255,255,255,0.35);margin-top:10px;font-weight:600;">THIS MESSAGE ONLY SHOWS ONCE</p>
   </div>
 </div>
 <script>
