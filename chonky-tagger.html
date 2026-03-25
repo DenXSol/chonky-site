@@ -60,9 +60,8 @@ h1{font-family:'Boogaloo',cursive;font-size:2.5rem;color:var(--yellow);margin-bo
   </div>
 
   <div class="card" id="setupCard">
-    <h2>Step 1 — Your API Key</h2>
-    <label class="field-label">Anthropic API Key <span>(starts with sk-ant-...)</span></label>
-    <input class="input" id="apiKey" type="password" placeholder="sk-ant-api03-...">
+    <h2>Step 1 — API Key</h2>
+    <p style="color:rgba(255,255,255,0.6);font-size:0.85rem;background:rgba(0,255,0,0.08);border:1px solid rgba(0,255,0,0.2);border-radius:8px;padding:10px;">✅ API key is stored securely in Vercel — no need to enter it here!</p>
 
     <h2 style="margin-top:1.2rem;">Step 2 — GitHub Repo</h2>
     <label class="field-label">GitHub Username</label>
@@ -187,43 +186,16 @@ async function startTagging() {
     try {
       log(`⏳ Tagging: ${file.name}`, 'info');
 
-      // Fetch image and convert to base64
-      const imgRes = await fetch(file.url);
-      if (!imgRes.ok) throw new Error(`HTTP ${imgRes.status}`);
-      const blob = await imgRes.blob();
-      const base64 = await new Promise(resolve => {
-        const reader = new FileReader();
-        reader.onload = e => resolve(e.target.result.split(',')[1]);
-        reader.readAsDataURL(blob);
-      });
-
-      // Call Claude API
-      const claudeRes = await fetch('https://api.anthropic.com/v1/messages', {
+      // Call our Vercel serverless function (no CORS issues!)
+      const claudeRes = await fetch('/api/tag', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': apiKey,
-          'anthropic-version': '2023-06-01',
-          'anthropic-dangerous-direct-browser-calls': 'true'
-        },
-        body: JSON.stringify({
-          model: 'claude-haiku-4-5-20251001',
-          max_tokens: 200,
-          system: 'You are an image tagger for Chonky World, a site about a chubby cartoon cat/duck character. Respond ONLY with a raw JSON array of exactly 5 short lowercase tags (1-2 words each) describing the mood, action, pose, and vibe. No explanation, no markdown, just the array.',
-          messages: [{
-            role: 'user',
-            content: [
-              { type: 'image', source: { type: 'base64', media_type: blob.type || 'image/gif', data: base64 } },
-              { type: 'text', text: '5 tags.' }
-            ]
-          }]
-        })
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ imageUrl: file.url })
       });
 
       const claudeData = await claudeRes.json();
-      if (claudeData.error) throw new Error(claudeData.error.message);
-      const text = claudeData.content?.[0]?.text || '[]';
-      const tags = JSON.parse(text.replace(/```json|```/g, '').trim());
+      if (claudeData.error && !claudeData.tags) throw new Error(claudeData.error);
+      const tags = claudeData.tags;
 
       tagsResult[id] = {
         tags: Array.isArray(tags) ? tags.slice(0, 5) : [],
