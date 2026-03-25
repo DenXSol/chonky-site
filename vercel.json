@@ -1,9 +1,4 @@
 {
-  "functions": {
-    "api/*.js": {
-      "runtime": "nodejs20.x"
-    }
-  },
   "rewrites": [
     { "source": "/api/tag", "destination": "/api/tag.js" },
     { "source": "/api/ratings", "destination": "/api/ratings.js" }
