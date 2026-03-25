@@ -176,13 +176,25 @@ header{position:sticky;top:0;z-index:200;background:var(--red-dark);border-botto
 .welcome-rating h4{font-weight:900;font-size:0.85rem;color:white;margin-bottom:0.5rem;}
 footer{position:relative;z-index:1;text-align:center;padding:1.5rem;border-top:2px solid rgba(0,0,0,0.15);font-size:0.82rem;color:rgba(255,255,255,0.4);font-weight:600;}
 @media(max-width:600px){header{padding:0 1rem;}.logo{font-size:1.3rem;}.grid{grid-template-columns:repeat(2,1fr);gap:10px;}.grid-section{padding:0 0.8rem 4rem;}.pending-card{flex-direction:column;}}
+
+.btn-nav{background:rgba(0,0,0,0.25);color:white;border:2.5px solid rgba(255,255,255,0.35);font-family:'Nunito',sans-serif;font-weight:800;font-size:0.78rem;padding:7px 16px;border-radius:50px;cursor:pointer;transition:all 0.18s;letter-spacing:0.5px;text-transform:uppercase;text-decoration:none;display:inline-flex;align-items:center;white-space:nowrap;}
+.btn-nav:hover{background:rgba(0,0,0,0.4);border-color:rgba(255,255,255,0.8);transform:translateY(-1px);}
+.btn-gold{background:#FFD93D!important;color:#111!important;border-color:#F0C000!important;box-shadow:0 3px 0 #b8860b;}
+.btn-gold:hover{transform:translateY(-1px);box-shadow:0 4px 0 #b8860b;}
+.btn-submit{background:#FFD93D;color:#111;border:none;font-family:'Nunito',sans-serif;font-weight:900;font-size:0.85rem;padding:9px 22px;border-radius:50px;cursor:pointer;transition:all 0.18s;letter-spacing:0.5px;box-shadow:0 3px 0 #b8860b;white-space:nowrap;}
+.btn-submit:hover{transform:translateY(-1px);box-shadow:0 4px 0 #b8860b;}
+.btn-submit:active{transform:translateY(1px);box-shadow:0 1px 0 #b8860b;}
 </style>
 </head>
 <body>
 <header>
   <div class="logo" onclick="goHome()"><img src="https://raw.githubusercontent.com/DenXSol/chonky-site/main/chonkylogo2.png" alt="Chonky" style="height:72px;width:auto;vertical-align:middle;margin-right:2px;"><span style="font-family:Boogaloo,cursive;font-size:1.6rem;color:white;font-weight:400;text-shadow:2px 2px 0 rgba(0,0,0,0.3);">.studio</span></div>
   <div class="header-btns">
-      <button class="btn btn-yellow" onclick="showCommunity()">+ Submit</button>
+    <a class="btn btn-nav" href="https://chonky.com/" target="_blank">WEBSITE</a>
+    <a class="btn btn-nav" href="https://x.com/chonkycom" target="_blank">X</a>
+    <a class="btn btn-nav btn-gold" href="https://jup.ag/?buy=2MwjFE1zbXyNKw6VjzGWa3BhPtFcs8htuX2xwRAtbonk" target="_blank">BUY $CHONKY</a>
+    <a class="btn btn-nav" href="https://dexscreener.com/solana/65kgwwvhxxapiajbr2th2lxafqjj7tkxrztewqeexvzf" target="_blank">DEX</a>
+    <button class="btn btn-submit" onclick="showCommunity()">+ SUBMIT</button>
   </div>
 </header>
 
@@ -770,7 +782,13 @@ function getAllImages(){return[...githubImages,...localImages];}
 function getAvgRating(id){
   const r=ratings[id];
   if(!r||!r.count||r.count===0) return 0;
-  return Math.round((r.total/r.count)*10)/10; // round to 1 decimal
+  return r.total/r.count; // raw value for accurate sorting
+}
+
+function getDisplayAvg(id){
+  const r=ratings[id];
+  if(!r||!r.count||r.count===0) return 0;
+  return Math.round((r.total/r.count)*10)/10;
 }
 
 function rateImage(stars){
@@ -875,7 +893,14 @@ function renderGrid(){
     return img.tag===currentTab&&img.source!=='community';
   });
   if(searchTerm)items=items.filter(img=>(img.label||'').toLowerCase().includes(searchTerm)||(img.tags||[]).some(t=>t.toLowerCase().includes(searchTerm)));
-  items.sort((a,b)=>getAvgRating(b.id)-getAvgRating(a.id));
+  items.sort((a,b)=>{
+    const avgA=getAvgRating(a.id);
+    const avgB=getAvgRating(b.id);
+    if(avgB!==avgA) return avgB-avgA;
+    const countA=ratings[a.id]?ratings[a.id].count:0;
+    const countB=ratings[b.id]?ratings[b.id].count:0;
+    return countB-countA;
+  });
   if(items.length===0){grid.innerHTML='';empty.style.display='block';lmw.style.display='none';const msgs={saved:'TAP THE BOOKMARK ON ANY IMAGE TO SAVE IT HERE.',community:'NO COMMUNITY IMAGES YET — BE THE FIRST!',gifs:'GO TO ADMIN → SYNC GITHUB TO LOAD GIFs.',stickers:'GO TO ADMIN → SYNC GITHUB TO LOAD STICKERS.',art:'GO TO ADMIN → SYNC GITHUB TO LOAD ART.'};document.getElementById('emptyMsg').textContent=msgs[currentTab]||'';return;}
   empty.style.display='none';lmw.style.display=items.length>visibleCount?'block':'none';
   grid.innerHTML=items.slice(0,visibleCount).map(img=>{
