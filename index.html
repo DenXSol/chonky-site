@@ -1119,7 +1119,7 @@ async function submitCommunity(){
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({
-        twitter_handle:document.getElementById('subTwitter').value.trim(),
+        twitter_handle:document.getElementById('subTwitter').value.trim().replace(/^@/,''),
         caption:document.getElementById('subCaption').value.trim(),
         image_url:imageUrl,
         tags,
