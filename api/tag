@@ -4,13 +4,27 @@ export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.status(200).end();
 
-  const { imageUrl, imageBase64, mimeType } = req.body || {};
+  const ANTHROPIC_KEY = process.env.ANTHROPIC_API_KEY;
+  if (!ANTHROPIC_KEY) return res.status(500).json({ error: 'Missing API key', tags: ['chonky','cute','funny','cartoon','animated'] });
 
   try {
+    // Parse body
+    let body = req.body;
+    if (typeof body === 'string') {
+      try { body = JSON.parse(body); } catch(e) { body = {}; }
+    }
+    if (!body || typeof body !== 'object') {
+      body = await new Promise((resolve) => {
+        let data = '';
+        req.on('data', chunk => { data += chunk; });
+        req.on('end', () => { try { resolve(JSON.parse(data)); } catch(e) { resolve({}); } });
+      });
+    }
+
+    const { imageUrl, imageBase64, mimeType } = body;
     let base64 = imageBase64;
     let mime = mimeType || 'image/gif';
 
-    // If URL provided, fetch it server-side
     if (imageUrl && !base64) {
       const imgRes = await fetch(imageUrl);
       if (!imgRes.ok) throw new Error(`Image fetch failed: ${imgRes.status}`);
@@ -19,13 +33,15 @@ export default async function handler(req, res) {
       mime = imgRes.headers.get('content-type') || 'image/gif';
     }
 
-    if (!base64) return res.status(400).json({ error: 'No image provided', tags: ['chonky','cute','funny','cartoon','animated'] });
+    if (!base64) {
+      return res.status(200).json({ tags: ['chonky','cute','funny','cartoon','animated'] });
+    }
 
     const claudeRes = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': process.env.ANTHROPIC_API_KEY,
+        'x-api-key': ANTHROPIC_KEY,
         'anthropic-version': '2023-06-01'
       },
       body: JSON.stringify({
@@ -46,9 +62,9 @@ export default async function handler(req, res) {
     if (data.error) throw new Error(data.error.message);
     const text = data.content?.[0]?.text || '[]';
     const tags = JSON.parse(text.replace(/```json|```/g, '').trim());
-    res.status(200).json({ tags: Array.isArray(tags) ? tags.slice(0, 5) : ['chonky','cute','funny','cartoon','animated'] });
-  } catch (e) {
-    console.error('Tag error:', e);
-    res.status(200).json({ tags: ['chonky','cute','funny','cartoon','animated'], error: e.message });
+    return res.status(200).json({ tags: Array.isArray(tags) ? tags.slice(0, 5) : ['chonky','cute','funny','cartoon','animated'] });
+  } catch(e) {
+    console.error('Tag error:', e.message);
+    return res.status(200).json({ tags: ['chonky','cute','funny','cartoon','animated'] });
   }
 }
