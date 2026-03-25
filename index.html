@@ -1069,20 +1069,19 @@ function selectRateStar(n) {
 
 
 // ── GLOBAL RATINGS via Upstash ──
+
+// ── GLOBAL RATINGS via Supabase ──
 async function loadGlobalRatings() {
   try {
     const res = await fetch('/api/ratings?t=' + Date.now());
     if (!res.ok) return;
     const globalRatings = await res.json();
     if (!globalRatings || typeof globalRatings !== 'object') return;
-    // Global ALWAYS completely replaces local ratings
     ratings = globalRatings;
     localStorage.setItem('chonky_ratings', JSON.stringify(ratings));
     renderGrid();
   } catch(e) { console.warn('Could not load global ratings:', e); }
 }
-
-// Poll every 15 seconds for live updates
 setInterval(loadGlobalRatings, 15000);
 
 async function submitGlobalRating(imgId, stars) {
@@ -1100,23 +1099,20 @@ async function submitGlobalRating(imgId, stars) {
     const data = await res.json();
     if (data.alreadyVoted) {
       showToast('ALREADY RATED THIS ONE! ⭐');
-      myVotes[imgId] = stars;
-      localStorage.setItem('chonky_myvotes', JSON.stringify(myVotes));
-      renderGrid();
       return false;
     }
     if (data.rating) {
-      // Use the server's authoritative count
       ratings[imgId] = data.rating;
       localStorage.setItem('chonky_ratings', JSON.stringify(ratings));
-      renderGrid(); // re-render with updated global count
+      renderGrid();
     }
     return true;
   } catch(e) {
-    console.warn('Global rating failed, saving locally:', e);
-    return true;
+    console.warn('Global rating failed:', e);
+    return false;
   }
 }
+
 
 async function submitRating() {
   if (!rateModalSelected) { showToast('PICK A STAR FIRST!'); return; }
