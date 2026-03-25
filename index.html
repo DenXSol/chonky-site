@@ -1154,19 +1154,21 @@ async function submitRating() {
   if (!rateModalSelected) { showToast('PICK A STAR FIRST!'); return; }
   if (!rateModalId) return;
   if (myVotes[rateModalId]) { showToast('ALREADY RATED! ⭐'); return; }
+  // Save imgId and stars BEFORE closing modal (closeRateModal clears rateModalId!)
+  const imgId = rateModalId;
+  const stars = rateModalSelected;
   // Save locally first for instant feedback
-  if (!ratings[rateModalId]) ratings[rateModalId] = {total:0, count:0};
-  ratings[rateModalId].total += rateModalSelected;
-  ratings[rateModalId].count += 1;
-  myVotes[rateModalId] = rateModalSelected;
+  if (!ratings[imgId]) ratings[imgId] = {total:0, count:0};
+  ratings[imgId].total += stars;
+  ratings[imgId].count += 1;
+  myVotes[imgId] = stars;
   localStorage.setItem('chonky_ratings', JSON.stringify(ratings));
   localStorage.setItem('chonky_myvotes', JSON.stringify(myVotes));
   closeRateModal();
   renderGrid();
-  showToast(`RATED ${rateModalSelected}★ THANKS! 🐾`);
-  if (modalImgId === rateModalId) updateModalRating(rateModalId);
-  // Also submit globally
-  await submitGlobalRating(rateModalId, rateModalSelected);
+  showToast(`RATED ${stars}★ THANKS! 🐾`);
+  // Submit globally with saved vars
+  await submitGlobalRating(imgId, stars);
 }
 
 let _tt;
