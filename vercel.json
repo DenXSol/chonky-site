@@ -1,6 +1,8 @@
 {
   "rewrites": [
     { "source": "/api/tag", "destination": "/api/tag.js" },
-    { "source": "/api/ratings", "destination": "/api/ratings.js" }
+    { "source": "/api/ratings", "destination": "/api/ratings.js" },
+    { "source": "/api/submit", "destination": "/api/submit.js" },
+    { "source": "/api/community", "destination": "/api/community.js" }
   ]
 }
