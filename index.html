@@ -305,8 +305,6 @@ footer{position:relative;z-index:1;text-align:center;padding:1.5rem;border-top:2
     </div>
     <input type="file" id="communityFile" accept="image/*,.gif" style="display:none" onchange="handleCommunityFile(event)">
     <img id="communityPreview" class="preview-img" alt="preview">
-    <div class="ai-status" id="aiStatus"></div>
-    <div class="tag-preview-wrap" id="tagPreviewWrap"></div>
     <div class="field-group">
       <label class="field-label">TWITTER / X HANDLE <span>(OPTIONAL)</span></label>
       <input class="form-input" id="subTwitter" type="text" placeholder="@YOURHANDLE">
@@ -314,6 +312,10 @@ footer{position:relative;z-index:1;text-align:center;padding:1.5rem;border-top:2
     <div class="field-group">
       <label class="field-label">CAPTION / DESCRIPTION <span>(OPTIONAL)</span></label>
       <input class="form-input" id="subCaption" type="text" placeholder="WHAT'S CHONKY DOING HERE?">
+    </div>
+    <div class="field-group">
+      <label class="field-label">TAGS <span>(OPTIONAL — SEPARATE WITH COMMAS, UP TO 5)</span></label>
+      <input class="form-input" id="subTags" type="text" placeholder="funny, cute, dancing, reaction, vibes">
     </div>
     <button class="btn btn-yellow" style="width:100%;padding:13px;font-size:0.95rem;margin-top:4px;" onclick="submitCommunity()">SUBMIT FOR REVIEW 🚀</button>
     <div class="pending-note">✋ ALL SUBMISSIONS ARE REVIEWED BEFORE GOING LIVE. THANKS FOR KEEPING CHONKY WORLD WHOLESOME!</div>
@@ -831,18 +833,17 @@ let localImages=JSON.parse(localStorage.getItem('chonky_local')||'[]');
 let pendingImages=JSON.parse(localStorage.getItem('chonky_pending')||'[]');
 let savedIds=JSON.parse(localStorage.getItem('chonky_saved')||'[]');
 let tagCache=JSON.parse(localStorage.getItem('chonky_tags')||'{}');
-let ratings={}; // Always load fresh from Supabase — never seed from stale localStorage
-// Read AFTER version check above so wiped users start fresh
+let ratings={}; // Always load fresh from Supabase
+// Read AFTER version check so wiped users start fresh
 let myVotes=JSON.parse(localStorage.getItem('chonky_myvotes')||'{}');
 
-// Generate voterKey ONCE at page load — never missing, never 'anon'
+// Generate voterKey ONCE at page load
 if (!localStorage.getItem('chonky_voter_key')) {
   localStorage.setItem('chonky_voter_key', 'v_' + Date.now() + '_' + Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2));
 }
 const VOTER_KEY = localStorage.getItem('chonky_voter_key');
 
-// VOTE WIPE SYSTEM — bump VOTES_VERSION whenever you wipe Supabase.
-// Every user's browser auto-clears their local vote history on next load.
+// VOTE WIPE SYSTEM — bump VOTES_VERSION whenever you wipe Supabase
 const VOTES_VERSION = '2';
 if (localStorage.getItem('chonky_votes_version') !== VOTES_VERSION) {
   localStorage.removeItem('chonky_myvotes');
@@ -857,8 +858,29 @@ window.addEventListener('DOMContentLoaded',()=>{
   renderGrid();
   // Load global ratings immediately on page open
   loadGlobalRatings();
+  loadCommunityImages();
 });
-function getAllImages(){return[...githubImages,...localImages];}
+let communityImages=[];
+function getAllImages(){return[...githubImages,...localImages,...communityImages];}
+
+async function loadCommunityImages(){
+  try{
+    const res=await fetch('/api/community');
+    if(!res.ok)return;
+    const rows=await res.json();
+    if(!Array.isArray(rows))return;
+    communityImages=rows.map(r=>({
+      id:'sb_com_'+r.id,
+      src:r.image_url,
+      tag:'community',
+      source:'community',
+      label:r.caption||'Community Submission',
+      tags:r.tags||[],
+      twitter_handle:r.twitter_handle||''
+    }));
+    renderGrid();
+  }catch(e){console.warn('Community load failed:',e);}
+}
 
 function getAvgRating(id){
   const r=ratings[id];
@@ -876,11 +898,9 @@ async function rateImage(stars){
   if(!modalImgId)return;
   if(myVotes[modalImgId]){showToast('ALREADY RATED! ⭐');return;}
   const imgId=modalImgId;
-  // Optimistic update
   if(!ratings[imgId])ratings[imgId]={total:0,count:0};
   ratings[imgId].total+=stars;ratings[imgId].count+=1;
   myVotes[imgId]=stars;
-  // Only save myVotes — ratings come from Supabase
   localStorage.setItem('chonky_myvotes',JSON.stringify(myVotes));
   updateModalRating(imgId);renderGrid();
   showToast(`Rated ${stars}★ Thanks! 🎉`);
@@ -1067,41 +1087,155 @@ function handleCommunityFile(e){const f=e.target.files[0];if(f)processCommunityF
 async function processCommunityFile(file){
   if(!file.type.startsWith('image/')){showToast('PLEASE UPLOAD AN IMAGE FILE');return;}
   const reader=new FileReader();
-  reader.onload=async ev=>{
+  reader.onload=ev=>{
     communityFileData=ev.target.result;
-    const preview=document.getElementById('communityPreview');preview.src=communityFileData;preview.style.display='block';
-    const status=document.getElementById('aiStatus');status.innerHTML='<span class="spin-sm"></span> AI scanning your image...';
-    communityFileTags=await autoTag(communityFileData.split(',')[1],file.type);
-    status.innerHTML='✅ Tagged!';
-    document.getElementById('tagPreviewWrap').innerHTML=communityFileTags.map(t=>`<span class="tag-badge">${t}</span>`).join('');
+    const preview=document.getElementById('communityPreview');
+    preview.src=communityFileData;preview.style.display='block';
   };
   reader.readAsDataURL(file);
 }
 async function submitCommunity(){
   if(!communityFileData){showToast('PLEASE CHOOSE AN IMAGE FIRST');return;}
-  pendingImages.push({id:'pending_'+Date.now(),src:communityFileData,tag:'gifs',source:'community_pending',label:document.getElementById('subCaption').value.trim()||'Community Submission',tags:communityFileTags,submitter:document.getElementById('subTwitter').value.trim()||'Anonymous',submittedAt:new Date().toLocaleDateString()});
-  localStorage.setItem('chonky_pending',JSON.stringify(pendingImages));
-  showToast('Submitted! ✅ Awaiting review.');
-  communityFileData=null;communityFileTags=[];
-  document.getElementById('communityPreview').style.display='none';
-  document.getElementById('tagPreviewWrap').innerHTML='';document.getElementById('aiStatus').innerHTML='';
-  document.getElementById('subTwitter').value='';document.getElementById('subCaption').value='';document.getElementById('communityFile').value='';
-  goHome();
+  const submitBtn=document.querySelector('#communitySection .btn-yellow[onclick*="submitCommunity"]');
+  if(submitBtn){submitBtn.disabled=true;submitBtn.textContent='UPLOADING... 🐾';}
+  try{
+    const SUPABASE_URL='https://iosejmiinhiglzmoicwd.supabase.co';
+    const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlvc2VqbWlpbmhpZ2x6bW9pY3dkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0MDg0MjQsImV4cCI6MjA4OTk4NDQyNH0.2EcXzDO7beq29u1U2zvX6t5f-J0G0oqcEiWrxDUd3R0';
+    const res=await fetch(communityFileData);
+    const blob=await res.blob();
+    const ext=blob.type.includes('gif')?'gif':blob.type.includes('png')?'png':blob.type.includes('webp')?'webp':'jpg';
+    const fileName=`submission_${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
+    const uploadRes=await fetch(`${SUPABASE_URL}/storage/v1/object/community/${fileName}`,{
+      method:'POST',
+      headers:{'apikey':SUPABASE_KEY,'Authorization':`Bearer ${SUPABASE_KEY}`,'Content-Type':blob.type,'x-upsert':'false'},
+      body:blob
+    });
+    if(!uploadRes.ok){const e=await uploadRes.text();throw new Error('Upload failed: '+e);}
+    const imageUrl=`${SUPABASE_URL}/storage/v1/object/public/community/${fileName}`;
+    // Parse manual tags — split by comma, trim, max 5
+    const rawTags=document.getElementById('subTags').value;
+    const tags=rawTags.split(',').map(t=>t.trim().toLowerCase()).filter(t=>t.length>0).slice(0,5);
+    const submitRes=await fetch('/api/submit',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        twitter_handle:document.getElementById('subTwitter').value.trim(),
+        caption:document.getElementById('subCaption').value.trim(),
+        image_url:imageUrl,
+        tags,
+        category:'gifs'
+      })
+    });
+    const data=await submitRes.json();
+    if(!data.success&&!data.id)throw new Error(data.error||'Submission failed');
+    showToast('SUBMITTED! ✅ AWAITING REVIEW 🐾');
+    communityFileData=null;
+    document.getElementById('communityPreview').style.display='none';
+    document.getElementById('subTwitter').value='';
+    document.getElementById('subCaption').value='';
+    document.getElementById('subTags').value='';
+    document.getElementById('communityFile').value='';
+    goHome();
+  }catch(e){
+    console.error('Submit error:',e);
+    showToast('ERROR: '+e.message.slice(0,60));
+  }finally{
+    if(submitBtn){submitBtn.disabled=false;submitBtn.textContent='SUBMIT FOR REVIEW 🚀';}
+  }
 }
 
 function checkAdmin(){
   if(document.getElementById('adminPw').value===ADMIN_PASSWORD){adminLoggedIn=true;document.getElementById('adminLoginBox').style.display='none';document.getElementById('adminContent').style.display='block';renderAdminQueue();renderAdminManage();}
   else document.getElementById('adminErr').style.display='block';
 }
-function renderAdminQueue(){
-  document.getElementById('queueBadge').textContent=pendingImages.length;
+// ── ADMIN QUEUE — Supabase backed ──
+let supabasePending=[];
+
+async function renderAdminQueue(){
   const list=document.getElementById('pendingList');
-  if(pendingImages.length===0){list.innerHTML=`<div class="empty" style="padding:2rem"><div class="empty-icon">✨</div><h3>Queue is empty!</h3></div>`;return;}
-  list.innerHTML=pendingImages.map(img=>`<div class="pending-card"><img src="${img.src}" alt="${img.label}"><div class="pending-info"><div class="pending-name">${img.label}</div><div class="pending-sub">By: ${img.submitter} · ${img.submittedAt}</div><div class="pending-tags">${(img.tags||[]).map(t=>`<span class="tag-badge" style="font-size:0.68rem;padding:2px 8px;">${t}</span>`).join('')}</div><div class="pending-actions"><button class="btn-approve" onclick="approveImg('${img.id}')">✓ Approve</button><button class="btn-reject" onclick="rejectImg('${img.id}')">✕ Reject</button><select class="cat-select" onchange="setPendingCat('${img.id}',this.value)"><option value="gifs">GIF</option><option value="stickers">Sticker</option><option value="art">Art</option></select></div></div></div>`).join('');
+  list.innerHTML='<p style="color:rgba(255,255,255,0.4);font-size:0.85rem;"><span class="spin-sm"></span> Loading...</p>';
+  try{
+    const res=await fetch('/api/submit');
+    if(!res.ok)throw new Error('Failed to load');
+    supabasePending=await res.json();
+  }catch(e){
+    list.innerHTML='<p style="color:#ff6b6b;font-size:0.85rem;">Could not load submissions: '+e.message+'</p>';
+    return;
+  }
+  document.getElementById('queueBadge').textContent=supabasePending.length;
+  if(supabasePending.length===0){
+    list.innerHTML='<div class="empty" style="padding:2rem"><div class="empty-icon">✨</div><h3>Queue is empty!</h3></div>';
+    return;
+  }
+  list.innerHTML=supabasePending.map(sub=>`
+    <div class="pending-card" id="sub_${sub.id}">
+      <img src="${sub.image_url}" alt="${sub.caption||'submission'}">
+      <div class="pending-info">
+        <div class="pending-name" style="margin-bottom:6px;">
+          <input style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:5px 10px;color:white;font-family:Nunito,sans-serif;font-weight:700;font-size:0.85rem;width:100%;"
+            id="cap_${sub.id}" value="${(sub.caption||'').replace(/"/g,'&quot;')}" placeholder="Caption...">
+        </div>
+        <div class="pending-sub">BY: @${sub.twitter_handle||'anonymous'} · ${new Date(sub.submitted_at).toLocaleDateString()}</div>
+        <div style="margin-bottom:8px;">
+          <input style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:5px 10px;color:white;font-family:Nunito,sans-serif;font-weight:600;font-size:0.78rem;width:100%;"
+            id="tags_${sub.id}" value="${(sub.tags||[]).join(', ')}" placeholder="tag1, tag2, tag3">
+          <div style="font-size:0.7rem;color:rgba(255,255,255,0.3);margin-top:3px;">Edit tags — separate with commas</div>
+        </div>
+        <div class="pending-actions">
+          <button class="btn-approve" onclick="approveImg('${sub.id}')">✓ APPROVE</button>
+          <button class="btn-reject" onclick="rejectImg('${sub.id}')">✕ REJECT</button>
+          <select class="cat-select" id="cat_${sub.id}">
+            <option value="gifs">GIF</option>
+            <option value="stickers">STICKER</option>
+            <option value="art">ART</option>
+          </select>
+        </div>
+      </div>
+    </div>`).join('');
 }
-function setPendingCat(id,val){const idx=pendingImages.findIndex(i=>i.id===id);if(idx>-1){pendingImages[idx].tag=val;savePending();}}
-function approveImg(id){const idx=pendingImages.findIndex(i=>i.id===id);if(idx===-1)return;const img={...pendingImages[idx],id:'com_'+Date.now(),source:'community'};localImages.unshift(img);pendingImages.splice(idx,1);saveLocal();savePending();renderAdminQueue();renderAdminManage();renderGrid();showToast('APPROVED! 🎉');}
-function rejectImg(id){pendingImages=pendingImages.filter(i=>i.id!==id);savePending();renderAdminQueue();showToast('REJECTED');}
+
+async function approveImg(id){
+  const btn=document.querySelector(`#sub_${id} .btn-approve`);
+  if(btn){btn.disabled=true;btn.textContent='Approving...';}
+  const caption=document.getElementById('cap_'+id)?.value||'';
+  const tagsRaw=document.getElementById('tags_'+id)?.value||'';
+  const tags=tagsRaw.split(',').map(t=>t.trim().toLowerCase()).filter(t=>t);
+  const category=document.getElementById('cat_'+id)?.value||'gifs';
+  try{
+    const res=await fetch('/api/submit',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({action:'approve',id,caption,tags,category})
+    });
+    const data=await res.json();
+    if(!data.success)throw new Error(data.error||'Failed');
+    showToast('APPROVED! 🎉');
+    await loadCommunityImages();
+    renderAdminQueue();
+  }catch(e){
+    showToast('Error: '+e.message);
+    if(btn){btn.disabled=false;btn.textContent='✓ APPROVE';}
+  }
+}
+
+async function rejectImg(id){
+  const btn=document.querySelector(`#sub_${id} .btn-reject`);
+  if(btn){btn.disabled=true;btn.textContent='Rejecting...';}
+  try{
+    const res=await fetch('/api/submit',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({action:'reject',id})
+    });
+    const data=await res.json();
+    if(!data.success)throw new Error(data.error||'Failed');
+    showToast('REJECTED');
+    renderAdminQueue();
+  }catch(e){
+    showToast('Error: '+e.message);
+    if(btn){btn.disabled=false;btn.textContent='✕ REJECT';}
+  }
+}
 
 function aDzOver(e){e.preventDefault();document.getElementById('adminDrop').classList.add('dragover');}
 function aDzLeave(){document.getElementById('adminDrop').classList.remove('dragover');}
@@ -1198,12 +1332,10 @@ async function loadGlobalRatings() {
     if (!res.ok) return;
     const globalRatings = await res.json();
     if (!globalRatings || typeof globalRatings !== 'object') return;
-    // ALWAYS overwrite — Supabase is the single source of truth
     Object.entries(globalRatings).forEach(([id, data]) => { ratings[id] = data; });
     renderGrid();
   } catch(e) { console.warn('Could not load global ratings:', e); }
 }
-// Poll every 5 seconds for near-realtime sync
 setInterval(loadGlobalRatings, 5000);
 
 async function submitGlobalRating(imgId, stars) {
@@ -1217,7 +1349,6 @@ async function submitGlobalRating(imgId, stars) {
     return false;
   }
   try {
-    // VOTER_KEY is set at page load — guaranteed unique, never 'anon'
     const res = await fetch('/api/ratings', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -1228,12 +1359,7 @@ async function submitGlobalRating(imgId, stars) {
       return false;
     }
     const data = await res.json();
-    console.log('Rating response:', JSON.stringify(data));
-    if (data.alreadyVoted) {
-      console.warn('alreadyVoted for', imgId, 'voterKey:', VOTER_KEY.slice(0,20));
-      showToast('ALREADY RATED! ⭐');
-      return false;
-    }
+    if (data.alreadyVoted) { showToast('ALREADY RATED! ⭐'); return false; }
     if (data.error) { console.error('Rating error:', data.error); return false; }
     if (data.rating) { ratings[imgId] = data.rating; renderGrid(); }
     return true;
@@ -1251,12 +1377,10 @@ async function submitRating() {
   // Save imgId and stars BEFORE closing modal (closeRateModal clears rateModalId!)
   const imgId = rateModalId;
   const stars = rateModalSelected;
-  // Optimistic local update for instant feedback
   if (!ratings[imgId]) ratings[imgId] = {total:0, count:0};
   ratings[imgId].total += stars;
   ratings[imgId].count += 1;
   myVotes[imgId] = stars;
-  // Only save myVotes — ratings come from Supabase, not localStorage
   localStorage.setItem('chonky_myvotes', JSON.stringify(myVotes));
   closeRateModal();
   renderGrid();
