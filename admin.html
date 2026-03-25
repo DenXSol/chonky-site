@@ -194,54 +194,90 @@ function clearCache() {
 }
 
 // Pending
-function renderPending() {
-  document.getElementById('pendingBadge').textContent = pendingImages.length;
+// ── PENDING SUBMISSIONS — Supabase backed ──
+async function renderPending() {
   const list = document.getElementById('pendingList');
-  if (pendingImages.length === 0) {
-    list.innerHTML = '<p style="color:rgba(255,255,255,0.35);font-size:0.85rem;">NO PENDING SUBMISSIONS</p>';
-    return;
-  }
-  list.innerHTML = pendingImages.map(img => `
-    <div class="pending-card">
-      <img src="${img.src}" alt="">
-      <div class="pending-info">
-        <div class="pending-name">${img.label || 'UNTITLED'}</div>
-        <div class="pending-sub">BY: ${img.submitter} · ${img.submittedAt}</div>
-        <div class="pending-tags">${(img.tags||[]).map(t=>`<span class="tag-badge">${t}</span>`).join('')}</div>
-        <div class="pending-actions">
-          <button class="btn-approve" onclick="approve('${img.id}')">✓ APPROVE</button>
-          <button class="btn-reject" onclick="reject('${img.id}')">✕ REJECT</button>
-          <select class="cat-select" onchange="setCat('${img.id}',this.value)">
-            <option value="gifs">GIF</option>
-            <option value="stickers">STICKER</option>
-            <option value="art">ART</option>
-          </select>
+  list.innerHTML = '<p style="color:rgba(255,255,255,0.35);font-size:0.85rem;"><span class="spin-sm"></span> Loading...</p>';
+  try {
+    const res = await fetch('/api/submit');
+    if (!res.ok) throw new Error('Failed to load');
+    const subs = await res.json();
+    document.getElementById('pendingBadge').textContent = subs.length;
+    if (subs.length === 0) {
+      list.innerHTML = '<p style="color:rgba(255,255,255,0.35);font-size:0.85rem;">NO PENDING SUBMISSIONS</p>';
+      return;
+    }
+    list.innerHTML = subs.map(sub => `
+      <div class="pending-card" id="sub_${sub.id}">
+        <img src="${sub.image_url}" alt="">
+        <div class="pending-info">
+          <div class="pending-name" style="margin-bottom:6px;">
+            <input style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:5px 10px;color:white;font-family:Nunito,sans-serif;font-weight:700;font-size:0.85rem;width:100%;"
+              id="cap_${sub.id}" value="${(sub.caption||'').replace(/"/g,'&quot;')}" placeholder="Caption...">
+          </div>
+          <div class="pending-sub">BY: @${sub.twitter_handle||'anonymous'} · ${new Date(sub.submitted_at).toLocaleDateString()}</div>
+          <div style="margin-bottom:8px;">
+            <input style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:5px 10px;color:white;font-family:Nunito,sans-serif;font-weight:600;font-size:0.78rem;width:100%;"
+              id="tags_${sub.id}" value="${(sub.tags||[]).join(', ')}" placeholder="tag1, tag2, tag3">
+            <div style="font-size:0.7rem;color:rgba(255,255,255,0.3);margin-top:3px;">Edit tags — separate with commas</div>
+          </div>
+          <div class="pending-actions">
+            <button class="btn-approve" onclick="approve('${sub.id}')">✓ APPROVE</button>
+            <button class="btn-reject" onclick="reject('${sub.id}')">✕ REJECT</button>
+            <select class="cat-select" id="cat_${sub.id}">
+              <option value="gifs">GIF</option>
+              <option value="stickers">STICKER</option>
+              <option value="art">ART</option>
+            </select>
+          </div>
         </div>
       </div>
-    </div>
-  `).join('');
+    `).join('');
+  } catch(e) {
+    list.innerHTML = '<p style="color:#ff6b6b;font-size:0.85rem;">Error: ' + e.message + '</p>';
+  }
 }
 
-function approve(id) {
-  const idx = pendingImages.findIndex(i => i.id === id);
-  if (idx === -1) return;
-  const img = {...pendingImages[idx], id: 'com_' + Date.now(), source: 'community'};
-  localImages.unshift(img);
-  pendingImages.splice(idx, 1);
-  saveAll();
-  renderPending();
-  renderManage();
-  showToast('APPROVED! 🎉');
+async function approve(id) {
+  const btn = document.querySelector(`#sub_${id} .btn-approve`);
+  if (btn) { btn.disabled = true; btn.textContent = 'Approving...'; }
+  const caption = document.getElementById('cap_' + id)?.value || '';
+  const tagsRaw = document.getElementById('tags_' + id)?.value || '';
+  const tags = tagsRaw.split(',').map(t => t.trim().toLowerCase()).filter(t => t);
+  const category = document.getElementById('cat_' + id)?.value || 'gifs';
+  try {
+    const res = await fetch('/api/submit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'approve', id, caption, tags, category })
+    });
+    const data = await res.json();
+    if (!data.success) throw new Error(data.error || 'Failed');
+    showToast('APPROVED! 🎉');
+    renderPending();
+  } catch(e) {
+    showToast('Error: ' + e.message);
+    if (btn) { btn.disabled = false; btn.textContent = '✓ APPROVE'; }
+  }
 }
-function reject(id) {
-  pendingImages = pendingImages.filter(i => i.id !== id);
-  localStorage.setItem('chonky_pending', JSON.stringify(pendingImages));
-  renderPending();
-  showToast('REJECTED');
-}
-function setCat(id, val) {
-  const idx = pendingImages.findIndex(i => i.id === id);
-  if (idx > -1) { pendingImages[idx].tag = val; localStorage.setItem('chonky_pending', JSON.stringify(pendingImages)); }
+
+async function reject(id) {
+  const btn = document.querySelector(`#sub_${id} .btn-reject`);
+  if (btn) { btn.disabled = true; btn.textContent = 'Rejecting...'; }
+  try {
+    const res = await fetch('/api/submit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'reject', id })
+    });
+    const data = await res.json();
+    if (!data.success) throw new Error(data.error || 'Failed');
+    showToast('REJECTED');
+    renderPending();
+  } catch(e) {
+    showToast('Error: ' + e.message);
+    if (btn) { btn.disabled = false; btn.textContent = '✕ REJECT'; }
+  }
 }
 
 // Add images
