@@ -141,8 +141,6 @@ const FOLDER_MAP = {gifs:'gif', stickers:'stickers', art:'art'};
 
 let githubImages = JSON.parse(localStorage.getItem('chonky_github') || '[]');
 let localImages = JSON.parse(localStorage.getItem('chonky_local') || '[]');
-let pendingImages = JSON.parse(localStorage.getItem('chonky_pending') || '[]');
-
 function login() {
   if (document.getElementById('pwInput').value === ADMIN_PASSWORD) {
     document.getElementById('loginSection').style.display = 'none';
@@ -193,7 +191,6 @@ function clearCache() {
   document.getElementById('syncStatus').innerHTML = 'CACHE CLEARED.';
 }
 
-// Pending
 // ── PENDING SUBMISSIONS — Supabase backed ──
 async function renderPending() {
   const list = document.getElementById('pendingList');
@@ -327,7 +324,6 @@ function deleteImg(id) {
 function saveAll() {
   try {
     localStorage.setItem('chonky_local', JSON.stringify(localImages));
-    localStorage.setItem('chonky_pending', JSON.stringify(pendingImages));
   } catch(e) { showToast('STORAGE FULL!'); }
 }
 
