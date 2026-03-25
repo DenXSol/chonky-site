@@ -4,59 +4,79 @@ export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.status(200).end();
 
-  const BASE = process.env.KV_REST_API_URL;
-  const TOKEN = process.env.KV_REST_API_TOKEN;
-
-  const headers = { Authorization: `Bearer ${TOKEN}` };
-
-  async function get(key) {
-    const r = await fetch(`${BASE}/get/${encodeURIComponent(key)}`, { headers });
-    const j = await r.json();
-    if (!j.result) return null;
-    try { return JSON.parse(j.result); } catch { return j.result; }
-  }
-
-  async function set(key, val) {
-    const r = await fetch(`${BASE}/set/${encodeURIComponent(key)}/${encodeURIComponent(JSON.stringify(val))}`, {
-      method: 'GET', headers
-    });
-    return r.json();
-  }
+  const SUPABASE_URL = process.env.SUPABASE_URL;
+  const SUPABASE_KEY = process.env.SUPABASE_ANON_KEY;
+  const headers = {
+    'apikey': SUPABASE_KEY,
+    'Authorization': `Bearer ${SUPABASE_KEY}`,
+    'Content-Type': 'application/json',
+    'Prefer': 'return=representation'
+  };
 
   try {
     if (req.method === 'GET') {
-      const data = await get('chonky_ratings');
-      return res.status(200).json(data || {});
+      // Get all ratings
+      const r = await fetch(`${SUPABASE_URL}/rest/v1/ratings?select=img_id,total,count`, { headers });
+      const rows = await r.json();
+      const result = {};
+      if (Array.isArray(rows)) {
+        rows.forEach(row => { result[row.img_id] = { total: row.total, count: row.count }; });
+      }
+      return res.status(200).json(result);
     }
 
     if (req.method === 'POST') {
       const { imgId, stars, voterKey } = req.body;
       if (!imgId || !stars || stars < 1 || stars > 5) {
-        return res.status(400).json({ error: 'Bad request' });
+        return res.status(400).json({ error: 'Invalid' });
       }
 
-      // Check duplicate vote
-      const voteKey = `v_${voterKey}_${imgId}`.slice(0, 90);
-      const existing = await get(voteKey);
-      if (existing !== null) {
+      // Check if already voted
+      const voteCheck = await fetch(
+        `${SUPABASE_URL}/rest/v1/votes?voter_key=eq.${encodeURIComponent(voterKey)}&img_id=eq.${encodeURIComponent(imgId)}`,
+        { headers }
+      );
+      const votes = await voteCheck.json();
+      if (Array.isArray(votes) && votes.length > 0) {
         return res.status(200).json({ alreadyVoted: true });
       }
 
-      // Mark voted
-      await set(voteKey, stars);
+      // Save vote
+      await fetch(`${SUPABASE_URL}/rest/v1/votes`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ voter_key: voterKey, img_id: imgId, stars: Number(stars) })
+      });
 
-      // Update ratings
-      const ratings = (await get('chonky_ratings')) || {};
-      if (!ratings[imgId]) ratings[imgId] = { total: 0, count: 0 };
-      ratings[imgId].total += Number(stars);
-      ratings[imgId].count += 1;
-      await set('chonky_ratings', ratings);
+      // Upsert rating
+      const existing = await fetch(
+        `${SUPABASE_URL}/rest/v1/ratings?img_id=eq.${encodeURIComponent(imgId)}`,
+        { headers }
+      );
+      const existingData = await existing.json();
 
-      return res.status(200).json({ success: true, rating: ratings[imgId] });
+      let newTotal, newCount;
+      if (Array.isArray(existingData) && existingData.length > 0) {
+        newTotal = existingData[0].total + Number(stars);
+        newCount = existingData[0].count + 1;
+        await fetch(`${SUPABASE_URL}/rest/v1/ratings?img_id=eq.${encodeURIComponent(imgId)}`, {
+          method: 'PATCH',
+          headers,
+          body: JSON.stringify({ total: newTotal, count: newCount })
+        });
+      } else {
+        newTotal = Number(stars);
+        newCount = 1;
+        await fetch(`${SUPABASE_URL}/rest/v1/ratings`, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({ img_id: imgId, total: newTotal, count: newCount })
+        });
+      }
+
+      return res.status(200).json({ success: true, rating: { total: newTotal, count: newCount } });
     }
-
-    return res.status(405).end();
-  } catch (e) {
+  } catch(e) {
     console.error(e);
     return res.status(500).json({ error: e.message });
   }
