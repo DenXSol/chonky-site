@@ -63,18 +63,9 @@ h1{font-family:'Boogaloo',cursive;font-size:2.5rem;color:var(--yellow);margin-bo
     <h2>Step 1 — API Key</h2>
     <p style="color:rgba(255,255,255,0.6);font-size:0.85rem;background:rgba(0,255,0,0.08);border:1px solid rgba(0,255,0,0.2);border-radius:8px;padding:10px;">✅ API key is stored securely in Vercel — no need to enter it here!</p>
 
-    <h2 style="margin-top:1.2rem;">Step 2 — GitHub Repo</h2>
-    <label class="field-label">GitHub Username</label>
-    <input class="input" id="ghUser" type="text" value="DenXSol">
-    <label class="field-label">Repository Name</label>
-    <input class="input" id="ghRepo" type="text" value="Chonky-media">
-    <label class="field-label">Branch</label>
-    <input class="input" id="ghBranch" type="text" value="main">
-
-    <h2 style="margin-top:1.2rem;">Step 3 — Folders to Tag</h2>
-    <label class="field-label">Folder names <span>(comma separated, maps to tab names)</span></label>
-    <input class="input" id="folders" type="text" value="gif:gifs, stickers:stickers, art:art" placeholder="foldername:tabname, ...">
-    <p style="font-size:0.78rem;color:rgba(255,255,255,0.4);margin-bottom:1rem;">Format: <code>github_folder:site_tab</code> — e.g. <code>gif:gifs</code> means folder "gif" shows under GIFs tab</p>
+    <div style="background:rgba(0,255,0,0.08);border:1px solid rgba(0,255,0,0.2);border-radius:8px;padding:12px;margin-top:1rem;">
+      ✅ <strong>401 images pre-loaded</strong> — 120 GIFs, 220 Stickers, 61 Art pieces from DenXSol/Chonky-media. No GitHub fetch needed!
+    </div>
 
     <button class="btn btn-yellow" onclick="startTagging()">🚀 Start Tagging All Images</button>
   </div>
@@ -129,22 +120,14 @@ function updateStats() {
 }
 
 async function startTagging() {
-  const ghUser = document.getElementById('ghUser').value.trim();
-  const ghRepo = document.getElementById('ghRepo').value.trim();
-  const ghBranch = document.getElementById('ghBranch').value.trim();
-  const foldersRaw = document.getElementById('folders').value.trim();
 
-  // Parse folder map
-  const folderMap = {};
-  foldersRaw.split(',').forEach(pair => {
-    const [folder, tab] = pair.trim().split(':').map(s => s.trim());
-    if (folder && tab) folderMap[folder] = tab;
-  });
+
+
 
   document.getElementById('setupCard').style.display = 'none';
   document.getElementById('progressCard').style.display = 'block';
 
-  const RAW = `https://raw.githubusercontent.com/${ghUser}/${ghRepo}/${ghBranch}`;
+
   tagsResult = {};
   totalCount = 0; doneCount = 0; errorCount = 0;
 
