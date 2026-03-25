@@ -7,12 +7,8 @@ export default async function handler(req, res) {
   const SUPABASE_URL = process.env.SUPABASE_URL;
   const SUPABASE_KEY = process.env.SUPABASE_ANON_KEY;
 
-  // Log to help debug
-  console.log('SUPABASE_URL:', SUPABASE_URL ? 'SET' : 'MISSING');
-  console.log('SUPABASE_KEY:', SUPABASE_KEY ? 'SET' : 'MISSING');
-
   if (!SUPABASE_URL || !SUPABASE_KEY) {
-    return res.status(500).json({ error: 'Missing Supabase env vars' });
+    return res.status(500).json({ error: 'Missing env vars' });
   }
 
   const headers = {
@@ -24,11 +20,15 @@ export default async function handler(req, res) {
 
   const base = `${SUPABASE_URL}/rest/v1`;
 
+  // Truncate IDs to safe length
+  function safeId(id) {
+    return String(id).slice(0, 100);
+  }
+
   try {
     if (req.method === 'GET') {
-      const r = await fetch(`${base}/ratings?select=img_id,total,count`, { headers });
+      const r = await fetch(`${base}/ratings?select=img_id,total,count&limit=1000`, { headers });
       const rows = await r.json();
-      console.log('GET ratings rows:', JSON.stringify(rows).slice(0, 200));
       const result = {};
       if (Array.isArray(rows)) {
         rows.forEach(row => { result[row.img_id] = { total: row.total, count: row.count }; });
@@ -38,68 +38,64 @@ export default async function handler(req, res) {
 
     if (req.method === 'POST') {
       const { imgId, stars, voterKey } = req.body;
-      console.log('POST vote:', { imgId: imgId?.slice(0,30), stars, voterKey: voterKey?.slice(0,20) });
 
       if (!imgId || !stars || stars < 1 || stars > 5) {
         return res.status(400).json({ error: 'Invalid params' });
       }
 
-      // Check duplicate
+      const safeImgId = safeId(imgId);
+      const safeVoterKey = safeId(voterKey || 'anon');
+
+      // Check duplicate vote
       const voteCheck = await fetch(
-        `${base}/votes?voter_key=eq.${encodeURIComponent(voterKey)}&img_id=eq.${encodeURIComponent(imgId)}&select=id`,
+        `${base}/votes?voter_key=eq.${encodeURIComponent(safeVoterKey)}&img_id=eq.${encodeURIComponent(safeImgId)}&select=id&limit=1`,
         { headers }
       );
-      const existing = await voteCheck.json();
-      console.log('Existing votes:', JSON.stringify(existing));
+      const existingVotes = await voteCheck.json();
 
-      if (Array.isArray(existing) && existing.length > 0) {
+      if (Array.isArray(existingVotes) && existingVotes.length > 0) {
         return res.status(200).json({ alreadyVoted: true });
       }
 
-      // Insert vote
-      const voteRes = await fetch(`${base}/votes`, {
+      // Insert vote record
+      await fetch(`${base}/votes`, {
         method: 'POST',
-        headers,
-        body: JSON.stringify({ voter_key: voterKey, img_id: imgId, stars: Number(stars) })
+        headers: { ...headers, 'Prefer': 'return=minimal' },
+        body: JSON.stringify({ voter_key: safeVoterKey, img_id: safeImgId, stars: Number(stars) })
       });
-      const voteData = await voteRes.json();
-      console.log('Vote insert:', JSON.stringify(voteData).slice(0,100));
 
-      // Get existing rating
-      const ratingRes = await fetch(
-        `${base}/ratings?img_id=eq.${encodeURIComponent(imgId)}&select=img_id,total,count`,
+      // Check if rating exists
+      const ratingCheck = await fetch(
+        `${base}/ratings?img_id=eq.${encodeURIComponent(safeImgId)}&select=img_id,total,count&limit=1`,
         { headers }
       );
-      const ratingRows = await ratingRes.json();
-      console.log('Rating rows:', JSON.stringify(ratingRows));
+      const existingRating = await ratingCheck.json();
 
       let newTotal, newCount;
 
-      if (Array.isArray(ratingRows) && ratingRows.length > 0) {
-        newTotal = ratingRows[0].total + Number(stars);
-        newCount = ratingRows[0].count + 1;
-        const patchRes = await fetch(
-          `${base}/ratings?img_id=eq.${encodeURIComponent(imgId)}`,
-          { method: 'PATCH', headers, body: JSON.stringify({ total: newTotal, count: newCount }) }
+      if (Array.isArray(existingRating) && existingRating.length > 0) {
+        newTotal = existingRating[0].total + Number(stars);
+        newCount = existingRating[0].count + 1;
+        await fetch(
+          `${base}/ratings?img_id=eq.${encodeURIComponent(safeImgId)}`,
+          { method: 'PATCH', headers: { ...headers, 'Prefer': 'return=minimal' }, body: JSON.stringify({ total: newTotal, count: newCount }) }
         );
-        console.log('Patch status:', patchRes.status);
       } else {
         newTotal = Number(stars);
         newCount = 1;
-        const insertRes = await fetch(`${base}/ratings`, {
+        await fetch(`${base}/ratings`, {
           method: 'POST',
-          headers,
-          body: JSON.stringify({ img_id: imgId, total: newTotal, count: newCount })
+          headers: { ...headers, 'Prefer': 'return=minimal' },
+          body: JSON.stringify({ img_id: safeImgId, total: newTotal, count: newCount })
         });
-        console.log('Insert status:', insertRes.status);
-        const insertData = await insertRes.json();
-        console.log('Insert data:', JSON.stringify(insertData).slice(0,100));
       }
 
       return res.status(200).json({ success: true, rating: { total: newTotal, count: newCount } });
     }
+
+    return res.status(405).end();
   } catch(e) {
-    console.error('Error:', e.message);
+    console.error('Ratings error:', e.message);
     return res.status(500).json({ error: e.message });
   }
 }
