@@ -923,17 +923,17 @@ async function copyImg(){try{const r=await fetch(modalSrc);const b=await r.blob(
 
 async function autoTag(base64,mimeType){
   try{
-    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:300,system:'You are an image tagger for Chonky World. Respond ONLY with a raw JSON array of exactly 5 short lowercase tags. No explanation, no markdown.',messages:[{role:'user',content:[{type:'image',source:{type:'base64',media_type:mimeType,data:base64}},{type:'text',text:'5 tags.'}]}]})});
+    const res=await fetch('/api/tag',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({imageBase64:base64,mimeType})});
     const data=await res.json();
-    const tags=JSON.parse((data.content?.[0]?.text||'[]').replace(/```json|```/g,'').trim());
-    return Array.isArray(tags)?tags.slice(0,5):[];
+    return Array.isArray(data.tags)?data.tags:['chonky','cute','funny','cartoon','animated'];
   }catch{return['chonky','cute','funny','cartoon','animated'];}
 }
 async function autoTagExisting(img){
   try{
-    const res=await fetch(img.src);const blob=await res.blob();
-    const base64=await new Promise(resolve=>{const reader=new FileReader();reader.onload=e=>resolve(e.target.result.split(',')[1]);reader.readAsDataURL(blob);});
-    const tags=await autoTag(base64,blob.type||'image/gif');
+    // Use /api/tag with the image URL directly - server fetches it
+    const res=await fetch('/api/tag',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({imageUrl:img.src})});
+    const data=await res.json();
+    const tags=Array.isArray(data.tags)?data.tags:['chonky','cute','funny','cartoon','animated'];
     tagCache[img.id]=tags;localStorage.setItem('chonky_tags',JSON.stringify(tagCache));
     const gh=githubImages.find(i=>i.id===img.id);if(gh)gh.tags=tags;
     const lc=localImages.find(i=>i.id===img.id);if(lc)lc.tags=tags;
