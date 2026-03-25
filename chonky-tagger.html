@@ -129,13 +129,10 @@ function updateStats() {
 }
 
 async function startTagging() {
-  const apiKey = document.getElementById('apiKey').value.trim();
   const ghUser = document.getElementById('ghUser').value.trim();
   const ghRepo = document.getElementById('ghRepo').value.trim();
   const ghBranch = document.getElementById('ghBranch').value.trim();
   const foldersRaw = document.getElementById('folders').value.trim();
-
-  if (!apiKey || !apiKey.startsWith('sk-ant')) { alert('Please enter a valid Anthropic API key (starts with sk-ant-)'); return; }
 
   // Parse folder map
   const folderMap = {};
