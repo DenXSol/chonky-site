@@ -213,16 +213,53 @@ footer{position:relative;z-index:1;text-align:center;padding:1.5rem;border-top:2
   transform:translateY(5px);
   box-shadow:0 0px 0 #111;
 }
+
+/* ── TAB BUTTONS ── */
+.tab-btn{
+  background:#fdde88;
+  color:#050505;
+  border:3px solid #111;
+  font-family:'Nunito',sans-serif;
+  font-weight:900;
+  font-size:0.82rem;
+  padding:9px 20px;
+  border-radius:50px;
+  cursor:pointer;
+  transition:transform 0.1s, box-shadow 0.1s;
+  letter-spacing:0.5px;
+  text-transform:uppercase;
+  text-decoration:none;
+  display:inline-flex;
+  align-items:center;
+  box-shadow:0 5px 0 #111;
+  white-space:nowrap;
+  opacity:0.65;
+}
+.tab-btn:hover{
+  transform:translateY(3px);
+  box-shadow:0 2px 0 #111;
+  opacity:0.85;
+}
+.tab-btn.active{
+  transform:translateY(3px);
+  box-shadow:0 2px 0 #111;
+  opacity:1;
+  background:#fdde88;
+}
+.tab-save{
+  padding:9px 14px;
+  font-size:1rem;
+}
 </style>
 </head>
 <body>
 <header>
   <div class="logo" onclick="goHome()"><img src="https://raw.githubusercontent.com/DenXSol/chonky-site/main/chonkylogo2.png" alt="Chonky" style="height:90px;width:auto;vertical-align:middle;"></div>
   <div class="header-btns">
-    <a class="btn btn-nav" href="https://chonky.com/" target="_blank">WEBSITE</a>
     <a class="btn btn-nav" href="https://x.com/chonkycom" target="_blank">X</a>
-    <a class="btn btn-nav btn-gold" href="https://jup.ag/?buy=2MwjFE1zbXyNKw6VjzGWa3BhPtFcs8htuX2xwRAtbonk" target="_blank">BUY $CHONKY</a>
     <a class="btn btn-nav" href="https://dexscreener.com/solana/65kgwwvhxxapiajbr2th2lxafqjj7tkxrztewqeexvzf" target="_blank">DEX</a>
+    <a class="btn btn-nav" href="https://jup.ag/?buy=2MwjFE1zbXyNKw6VjzGWa3BhPtFcs8htuX2xwRAtbonk" target="_blank">BUY $CHONKY</a>
+    <a class="btn btn-nav" href="https://chonky.com/" target="_blank">WEBSITE</a>
     <button class="btn btn-submit" onclick="showCommunity()">+ SUBMIT</button>
   </div>
 </header>
