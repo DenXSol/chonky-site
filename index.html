@@ -126,7 +126,7 @@ header{position:sticky;top:0;z-index:200;background:var(--red-dark);border-botto
 .modal-x:hover{background:rgba(255,255,255,0.16);}
 .modal-img-bg{background:rgba(255,255,255,0.04);border-radius:14px;padding:1rem;margin-bottom:1rem;text-align:center;min-height:160px;display:flex;align-items:center;justify-content:center;}
 .modal-img-bg img{max-width:180px;max-height:180px;object-fit:contain;}
-.modal h2{font-family:'Boogaloo',cursive;font-size:1.5rem;margin-bottom:0.4rem;}
+.modal h2{display:none;}
 .modal-tags{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:1rem;}
 .modal-tag{background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.8);font-size:0.7rem;font-weight:700;padding:3px 9px;border-radius:50px;}
 .modal-rating{background:rgba(255,255,255,0.05);border-radius:12px;padding:0.9rem 1rem;margin-bottom:1rem;}
@@ -914,7 +914,7 @@ function openModal(id){
   const img=getAllImages().find(i=>i.id===id);if(!img)return;
   modalSrc=img.src;modalImgId=img.id;
   document.getElementById('modalImg').src=img.src;
-  document.getElementById('modalTitle').textContent='';
+  document.getElementById('modalTitle').style.display='none';
   document.getElementById('modalTags').innerHTML=(img.tags||[]).map(t=>`<span class="modal-tag">${t}</span>`).join('');
   const dl=document.getElementById('modalDl');dl.href=img.src;dl.download=(img.label||'chonky').replace(/\s+/g,'-')+'.gif';
   updateModalRating(id);
@@ -1027,7 +1027,7 @@ function openRateModal(id) {
   rateModalId = id;
   rateModalSelected = 0;
   document.getElementById('rateModalImg').src = img.src;
-  document.getElementById('rateModalTitle').textContent = img.label || 'RATE THIS IMAGE';
+  document.getElementById('rateModalTitle').textContent = 'RATE THIS IMAGE';
   document.getElementById('rateModalSelected').textContent = '';
   const already = myVotes[id];
   const r = ratings[id];
@@ -1035,11 +1035,13 @@ function openRateModal(id) {
   const starsEl = document.getElementById('rateModalStars');
   const submitBtn = document.getElementById('rateSubmitBtn');
   if (already) {
+    const avg = r ? (r.total/r.count).toFixed(1) : already;
+    const votes = r ? r.count : 1;
     alreadyEl.style.display = 'block';
-    alreadyEl.textContent = `YOU ALREADY RATED THIS ${already}★ — AVG RATING: ${r ? (r.total/r.count).toFixed(1) : already}★ FROM ${r ? r.count : 1} VOTE${r&&r.count!==1?'S':''}`;
+    alreadyEl.textContent = `YOU RATED THIS ${already}★ — AVG: ${avg}★ FROM ${votes} VOTE${votes!==1?'S':''}`;
     starsEl.style.display = 'none';
     submitBtn.style.display = 'none';
-    document.getElementById('rateModalSub').textContent = 'THANKS FOR YOUR VOTE!';
+    document.getElementById('rateModalSub').textContent = 'ALREADY RATED';
   } else {
     alreadyEl.style.display = 'none';
     starsEl.style.display = 'flex';
