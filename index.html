@@ -371,6 +371,7 @@ footer{position:relative;z-index:1;text-align:center;padding:1.5rem;border-top:2
     <button class="modal-x" onclick="closeModal()">✕</button>
     <div class="modal-img-bg"><img id="modalImg" src="" alt=""></div>
     <h2 id="modalTitle">Download</h2>
+    <div id="modalHandle" style="display:none;font-size:0.8rem;color:rgba(255,255,255,0.55);font-weight:600;margin-bottom:8px;"></div>
     <div class="modal-tags" id="modalTags"></div>
     <div class="modal-rating">
       <div class="modal-rating-label" id="modalRatingLabel">RATE THIS IMAGE</div>
@@ -1051,6 +1052,17 @@ function openModal(id){
   document.getElementById('modalImg').src=img.src;
   document.getElementById('modalTitle').style.display='none';
   document.getElementById('modalTags').innerHTML=(img.tags||[]).map(t=>`<span class="modal-tag">${t}</span>`).join('');
+  // Show twitter handle for community images
+  const handleEl = document.getElementById('modalHandle');
+  if (handleEl) {
+    if (img.source==='community' && img.twitter_handle) {
+      const handle = img.twitter_handle.replace(/^@/,'');
+      handleEl.innerHTML = `BY: <a href="https://x.com/${handle}" target="_blank" style="color:var(--yellow);text-decoration:none;font-weight:800;">@${handle}</a>`;
+      handleEl.style.display = 'block';
+    } else {
+      handleEl.style.display = 'none';
+    }
+  }
   const dl=document.getElementById('modalDl');dl.href=img.src;dl.download=(img.label||'chonky').replace(/\s+/g,'-')+'.gif';
   updateModalRating(id);
   document.getElementById('modalBg').classList.add('open');
