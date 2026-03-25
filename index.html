@@ -759,7 +759,12 @@ let myVotes=JSON.parse(localStorage.getItem('chonky_myvotes')||'{}');
 let currentTab='gifs',searchTerm='',visibleCount=24,modalSrc='',modalImgId='';
 let adminLoggedIn=false,communityFileData=null,communityFileTags=[];
 
-window.addEventListener('DOMContentLoaded',()=>{updateSavedBadge();renderGrid();loadGlobalRatings();});
+window.addEventListener('DOMContentLoaded',()=>{
+  updateSavedBadge();
+  renderGrid();
+  // Load global ratings immediately on page open
+  loadGlobalRatings();
+});
 function getAllImages(){return[...githubImages,...localImages];}
 
 function getAvgRating(id){
@@ -1083,11 +1088,10 @@ async function loadGlobalRatings() {
     if (!res.ok) return;
     const globalRatings = await res.json();
     if (!globalRatings || typeof globalRatings !== 'object') return;
-    // Merge global INTO local — don't wipe local votes already cast this session
+    // Always merge global ratings — global count always wins
     let changed = false;
     Object.entries(globalRatings).forEach(([id, data]) => {
-      // Only update if global count is higher than what we have locally
-      if (!ratings[id] || globalRatings[id].count > ratings[id].count) {
+      if (!ratings[id] || data.count !== ratings[id].count || data.total !== ratings[id].total) {
         ratings[id] = data;
         changed = true;
       }
@@ -1098,10 +1102,19 @@ async function loadGlobalRatings() {
     }
   } catch(e) { console.warn('Could not load global ratings:', e); }
 }
-// Poll every 20 seconds
-setInterval(loadGlobalRatings, 20000);
+// Poll every 10 seconds for faster sync
+setInterval(loadGlobalRatings, 10000);
 
 async function submitGlobalRating(imgId, stars) {
+  // Validate before sending
+  if (!imgId || typeof imgId !== 'string' || imgId.trim() === '') {
+    console.warn('Invalid imgId:', imgId);
+    return false;
+  }
+  if (!stars || typeof Number(stars) !== 'number' || Number(stars) < 1 || Number(stars) > 5) {
+    console.warn('Invalid stars:', stars);
+    return false;
+  }
   try {
     let voterKey = localStorage.getItem('chonky_voter_key');
     if (!voterKey) {
@@ -1111,22 +1124,27 @@ async function submitGlobalRating(imgId, stars) {
     const res = await fetch('/api/ratings', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ imgId, stars, voterKey })
+      body: JSON.stringify({ imgId: String(imgId), stars: Number(stars), voterKey: String(voterKey) })
     });
+    if (!res.ok) {
+      console.warn('Rating API returned:', res.status);
+      return false;
+    }
     const data = await res.json();
     if (data.alreadyVoted) {
       showToast('ALREADY RATED! ⭐');
       return false;
     }
     if (data.rating) {
-      // Always trust server rating after successful vote
       ratings[imgId] = data.rating;
       localStorage.setItem('chonky_ratings', JSON.stringify(ratings));
       renderGrid();
     }
+    // Reload global ratings after vote to sync immediately
+    setTimeout(loadGlobalRatings, 1000);
     return true;
   } catch(e) {
-    console.warn('Global rating failed, keeping local:', e);
+    console.warn('Global rating failed:', e);
     return false;
   }
 }
