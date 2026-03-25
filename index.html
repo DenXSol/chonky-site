@@ -1072,19 +1072,21 @@ function selectRateStar(n) {
 // ── GLOBAL RATINGS via Upstash ──
 async function loadGlobalRatings() {
   try {
-    const res = await fetch('/api/ratings');
+    const res = await fetch('/api/ratings?t=' + Date.now()); // bust cache
     if (!res.ok) return;
     const globalRatings = await res.json();
-    // Merge global ratings with local (global wins)
-    Object.assign(ratings, globalRatings);
+    // Global always wins over local
+    ratings = Object.assign({}, ratings, globalRatings);
     localStorage.setItem('chonky_ratings', JSON.stringify(ratings));
     renderGrid();
   } catch(e) { console.warn('Could not load global ratings:', e); }
 }
 
+// Poll for new ratings every 30 seconds so votes from other users show up
+setInterval(loadGlobalRatings, 30000);
+
 async function submitGlobalRating(imgId, stars) {
   try {
-    // Generate a stable voter key from browser fingerprint
     let voterKey = localStorage.getItem('chonky_voter_key');
     if (!voterKey) {
       voterKey = 'v_' + Date.now() + '_' + Math.random().toString(36).slice(2);
@@ -1100,11 +1102,14 @@ async function submitGlobalRating(imgId, stars) {
       showToast('ALREADY RATED THIS ONE! ⭐');
       myVotes[imgId] = stars;
       localStorage.setItem('chonky_myvotes', JSON.stringify(myVotes));
+      renderGrid();
       return false;
     }
     if (data.rating) {
+      // Use the server's authoritative count
       ratings[imgId] = data.rating;
       localStorage.setItem('chonky_ratings', JSON.stringify(ratings));
+      renderGrid(); // re-render with updated global count
     }
     return true;
   } catch(e) {
