@@ -4,18 +4,23 @@ export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.status(200).end();
 
-  const { imageUrl } = req.body;
-  if (!imageUrl) return res.status(400).json({ error: 'No imageUrl provided' });
+  const { imageUrl, imageBase64, mimeType } = req.body || {};
 
   try {
-    // Fetch the image and convert to base64
-    const imgRes = await fetch(imageUrl);
-    if (!imgRes.ok) throw new Error(`Image fetch failed: ${imgRes.status}`);
-    const buffer = await imgRes.arrayBuffer();
-    const base64 = Buffer.from(buffer).toString('base64');
-    const mimeType = imgRes.headers.get('content-type') || 'image/gif';
+    let base64 = imageBase64;
+    let mime = mimeType || 'image/gif';
 
-    // Call Anthropic API server-side (no CORS issues here)
+    // If URL provided, fetch it server-side
+    if (imageUrl && !base64) {
+      const imgRes = await fetch(imageUrl);
+      if (!imgRes.ok) throw new Error(`Image fetch failed: ${imgRes.status}`);
+      const buffer = await imgRes.arrayBuffer();
+      base64 = Buffer.from(buffer).toString('base64');
+      mime = imgRes.headers.get('content-type') || 'image/gif';
+    }
+
+    if (!base64) return res.status(400).json({ error: 'No image provided', tags: ['chonky','cute','funny','cartoon','animated'] });
+
     const claudeRes = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
@@ -26,11 +31,11 @@ export default async function handler(req, res) {
       body: JSON.stringify({
         model: 'claude-haiku-4-5-20251001',
         max_tokens: 200,
-        system: 'You tag images for Chonky World, a site about a chubby cartoon cat/duck character. Respond ONLY with a raw JSON array of exactly 5 short lowercase tags describing the mood, action, and vibe. No explanation, no markdown.',
+        system: 'You tag images for Chonky World, a site about a chubby cartoon cat/duck. Respond ONLY with a raw JSON array of exactly 5 short lowercase tags. No explanation, no markdown.',
         messages: [{
           role: 'user',
           content: [
-            { type: 'image', source: { type: 'base64', media_type: mimeType, data: base64 } },
+            { type: 'image', source: { type: 'base64', media_type: mime, data: base64 } },
             { type: 'text', text: '5 tags.' }
           ]
         }]
@@ -41,8 +46,9 @@ export default async function handler(req, res) {
     if (data.error) throw new Error(data.error.message);
     const text = data.content?.[0]?.text || '[]';
     const tags = JSON.parse(text.replace(/```json|```/g, '').trim());
-    res.status(200).json({ tags: Array.isArray(tags) ? tags.slice(0, 5) : [] });
+    res.status(200).json({ tags: Array.isArray(tags) ? tags.slice(0, 5) : ['chonky','cute','funny','cartoon','animated'] });
   } catch (e) {
-    res.status(500).json({ error: e.message, tags: ['chonky', 'cute', 'funny', 'cartoon', 'animated'] });
+    console.error('Tag error:', e);
+    res.status(200).json({ tags: ['chonky','cute','funny','cartoon','animated'], error: e.message });
   }
 }
