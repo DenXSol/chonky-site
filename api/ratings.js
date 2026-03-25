@@ -12,15 +12,15 @@ export default async function handler(req, res) {
       headers: { Authorization: `Bearer ${KV_TOKEN}` }
     });
     const d = await r.json();
-    return d.result ? JSON.parse(d.result) : null;
+    return d.result !== null && d.result !== undefined ? JSON.parse(d.result) : null;
   }
 
   async function kvSet(key, value) {
-    await fetch(`${KV_URL}/set/${encodeURIComponent(key)}`, {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${KV_TOKEN}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ value: JSON.stringify(value) })
+    const r = await fetch(`${KV_URL}/set/${encodeURIComponent(key)}/${encodeURIComponent(JSON.stringify(value))}`, {
+      method: 'GET',
+      headers: { Authorization: `Bearer ${KV_TOKEN}` }
     });
+    return r.json();
   }
 
   try {
@@ -35,26 +35,29 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: 'Invalid rating' });
       }
 
-      // Check if already voted
-      const voteKey = `vote_${voterKey}_${imgId}`;
+      // Check if already voted (use short key to save space)
+      const voteKey = `v_${voterKey}_${imgId}`.slice(0, 100);
       const alreadyVoted = await kvGet(voteKey);
-      if (alreadyVoted) {
+      if (alreadyVoted !== null) {
         return res.status(200).json({ alreadyVoted: true });
       }
 
-      // Save vote marker
+      // Save vote marker (expire after 1 year = 31536000 seconds)
       await kvSet(voteKey, stars);
 
-      // Update ratings
+      // Update global ratings
       const ratings = await kvGet('chonky_ratings') || {};
       if (!ratings[imgId]) ratings[imgId] = { total: 0, count: 0 };
-      ratings[imgId].total += stars;
+      ratings[imgId].total += Number(stars);
       ratings[imgId].count += 1;
       await kvSet('chonky_ratings', ratings);
 
       return res.status(200).json({ success: true, rating: ratings[imgId] });
     }
+
+    return res.status(405).json({ error: 'Method not allowed' });
   } catch(e) {
+    console.error('Ratings error:', e);
     return res.status(500).json({ error: e.message });
   }
 }
