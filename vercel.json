@@ -2,5 +2,13 @@
   "rewrites": [
     { "source": "/api/tag", "destination": "/api/tag.js" },
     { "source": "/api/ratings", "destination": "/api/ratings.js" }
-  ]
+  ],
+  "functions": {
+    "api/ratings.js": {
+      "maxDuration": 10
+    },
+    "api/tag.js": {
+      "maxDuration": 30
+    }
+  }
 }
