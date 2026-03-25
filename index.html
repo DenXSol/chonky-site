@@ -762,7 +762,11 @@ let adminLoggedIn=false,communityFileData=null,communityFileTags=[];
 window.addEventListener('DOMContentLoaded',()=>{updateSavedBadge();renderGrid();loadGlobalRatings();});
 function getAllImages(){return[...githubImages,...localImages];}
 
-function getAvgRating(id){const r=ratings[id];return(!r||r.count===0)?0:r.total/r.count;}
+function getAvgRating(id){
+  const r=ratings[id];
+  if(!r||!r.count||r.count===0) return 0;
+  return Math.round((r.total/r.count)*10)/10; // round to 1 decimal
+}
 
 function rateImage(stars){
   if(!modalImgId)return;
@@ -884,7 +888,7 @@ function renderGrid(){
       </div>
       <div class="card-footer" onclick="event.stopPropagation();openRateModal('${img.id}')">
         ${avg>0
-          ? `<span class="card-avg">${'★'.repeat(Math.round(avg))}${'☆'.repeat(5-Math.round(avg))}</span><span class="vote-count">${r?r.count:0} vote${r&&r.count!==1?'s':''}</span>`
+          ? `<span class="card-avg" title="Average: ${avg.toFixed(1)}★">${[1,2,3,4,5].map(n=>n<=Math.round(avg)?'★':'☆').join('')}</span><span class="vote-count">${r.count} vote${r.count!==1?'s':''}</span>`
           : `<span class="vote-count-dim">★ TAP TO RATE</span>`
         }
       </div>
@@ -1077,12 +1081,23 @@ async function loadGlobalRatings() {
     if (!res.ok) return;
     const globalRatings = await res.json();
     if (!globalRatings || typeof globalRatings !== 'object') return;
-    ratings = globalRatings;
-    localStorage.setItem('chonky_ratings', JSON.stringify(ratings));
-    renderGrid();
+    // Merge global INTO local — don't wipe local votes already cast this session
+    let changed = false;
+    Object.entries(globalRatings).forEach(([id, data]) => {
+      // Only update if global count is higher than what we have locally
+      if (!ratings[id] || globalRatings[id].count > ratings[id].count) {
+        ratings[id] = data;
+        changed = true;
+      }
+    });
+    if (changed) {
+      localStorage.setItem('chonky_ratings', JSON.stringify(ratings));
+      renderGrid();
+    }
   } catch(e) { console.warn('Could not load global ratings:', e); }
 }
-setInterval(loadGlobalRatings, 15000);
+// Poll every 20 seconds
+setInterval(loadGlobalRatings, 20000);
 
 async function submitGlobalRating(imgId, stars) {
   try {
@@ -1098,17 +1113,18 @@ async function submitGlobalRating(imgId, stars) {
     });
     const data = await res.json();
     if (data.alreadyVoted) {
-      showToast('ALREADY RATED THIS ONE! ⭐');
+      showToast('ALREADY RATED! ⭐');
       return false;
     }
     if (data.rating) {
+      // Always trust server rating after successful vote
       ratings[imgId] = data.rating;
       localStorage.setItem('chonky_ratings', JSON.stringify(ratings));
       renderGrid();
     }
     return true;
   } catch(e) {
-    console.warn('Global rating failed:', e);
+    console.warn('Global rating failed, keeping local:', e);
     return false;
   }
 }
