@@ -48,11 +48,13 @@ export default async function handler(req, res) {
         const sub = rows[0];
 
         // Insert into community_images with any admin edits
+        const { twitter_handle: edited_handle } = body;
+        const finalHandle = (edited_handle !== undefined ? edited_handle : sub.twitter_handle || '').replace(/^@/, '').trim();
         const insertRes = await fetch(`${base}/community_images`, {
           method: 'POST',
           headers: { ...sb, 'Prefer': 'return=representation' },
           body: JSON.stringify({
-            twitter_handle: sub.twitter_handle,
+            twitter_handle: finalHandle,
             caption: caption !== undefined ? caption : sub.caption,
             image_url: sub.image_url,
             tags: tags !== undefined ? tags : (sub.tags || []),
