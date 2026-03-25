@@ -7,18 +7,24 @@ export default async function handler(req, res) {
   const KV_URL = process.env.KV_REST_API_URL;
   const KV_TOKEN = process.env.KV_REST_API_TOKEN;
 
+  // Upstash REST API - correct format
   async function kvGet(key) {
     const r = await fetch(`${KV_URL}/get/${encodeURIComponent(key)}`, {
       headers: { Authorization: `Bearer ${KV_TOKEN}` }
     });
     const d = await r.json();
-    return d.result !== null && d.result !== undefined ? JSON.parse(d.result) : null;
+    if (d.result === null || d.result === undefined) return null;
+    try { return JSON.parse(d.result); } catch { return d.result; }
   }
 
   async function kvSet(key, value) {
-    const r = await fetch(`${KV_URL}/set/${encodeURIComponent(key)}/${encodeURIComponent(JSON.stringify(value))}`, {
-      method: 'GET',
-      headers: { Authorization: `Bearer ${KV_TOKEN}` }
+    const r = await fetch(`${KV_URL}/set/${encodeURIComponent(key)}`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${KV_TOKEN}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify([JSON.stringify(value)])
     });
     return r.json();
   }
@@ -35,15 +41,15 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: 'Invalid rating' });
       }
 
-      // Check if already voted (use short key to save space)
+      // Check if already voted
       const voteKey = `v_${voterKey}_${imgId}`.slice(0, 100);
       const alreadyVoted = await kvGet(voteKey);
       if (alreadyVoted !== null) {
         return res.status(200).json({ alreadyVoted: true });
       }
 
-      // Save vote marker (expire after 1 year = 31536000 seconds)
-      await kvSet(voteKey, stars);
+      // Save vote marker
+      await kvSet(voteKey, Number(stars));
 
       // Update global ratings
       const ratings = await kvGet('chonky_ratings') || {};
