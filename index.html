@@ -832,7 +832,6 @@ let pendingImages=JSON.parse(localStorage.getItem('chonky_pending')||'[]');
 let savedIds=JSON.parse(localStorage.getItem('chonky_saved')||'[]');
 let tagCache=JSON.parse(localStorage.getItem('chonky_tags')||'{}');
 let ratings={};// Always load fresh from Supabase — never seed from stale localStorage
-let myVotes=JSON.parse(localStorage.getItem('chonky_myvotes')||'{}');
 
 let currentTab='gifs',searchTerm='',visibleCount=24,modalSrc='',modalImgId='';
 let adminLoggedIn=false,communityFileData=null,communityFileTags=[];
@@ -842,6 +841,18 @@ if (!localStorage.getItem('chonky_voter_key')) {
   localStorage.setItem('chonky_voter_key', 'v_' + Date.now() + '_' + Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2));
 }
 const VOTER_KEY = localStorage.getItem('chonky_voter_key');
+
+// VOTE WIPE SYSTEM — bump VOTES_VERSION below whenever you wipe Supabase.
+// Anyone with an older version stored locally gets their myVotes cleared automatically.
+const VOTES_VERSION = '1';
+if (localStorage.getItem('chonky_votes_version') !== VOTES_VERSION) {
+  localStorage.removeItem('chonky_myvotes');
+  localStorage.setItem('chonky_votes_version', VOTES_VERSION);
+  console.log('Votes version changed — local vote history cleared.');
+}
+
+// Read myVotes AFTER version check so wiped users start fresh
+let myVotes=JSON.parse(localStorage.getItem('chonky_myvotes')||'{}');
 
 window.addEventListener('DOMContentLoaded',()=>{
   updateSavedBadge();
