@@ -50,13 +50,28 @@ header{position:sticky;top:0;z-index:200;background:var(--red-dark);border-botto
 .btn-save:hover,.btn-save.saved{background:var(--yellow);}
 .btn-bk{width:28px;height:28px;background:rgba(255,255,255,0.15);border:none;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;color:white;transition:all 0.15s;flex-shrink:0;}
 .btn-bk.bookmarked{background:var(--yellow);color:var(--black);}
-.card-footer{padding:6px 10px 8px;display:flex;align-items:center;justify-content:space-between;gap:6px;border-top:1px solid rgba(255,255,255,0.07);}
+.card-footer{padding:6px 10px 8px;display:flex;align-items:center;justify-content:space-between;gap:6px;border-top:1px solid rgba(255,255,255,0.07);cursor:pointer;transition:background 0.15s;border-radius:0 0 var(--radius) var(--radius);}.card-footer:hover{background:rgba(255,255,255,0.06);}
 .star-row{display:flex;align-items:center;gap:2px;}
 .star{font-size:0.9rem;cursor:pointer;transition:transform 0.1s;line-height:1;color:rgba(255,255,255,0.22);user-select:none;}
 .star.lit{color:var(--yellow);}
 .star:hover{transform:scale(1.25);}
 .vote-count{font-size:0.66rem;color:rgba(255,255,255,0.4);font-weight:700;white-space:nowrap;}
 .voted-badge{font-size:0.62rem;background:rgba(255,217,61,0.15);color:var(--yellow);font-weight:800;padding:2px 7px;border-radius:50px;white-space:nowrap;}
+.card-avg{font-size:0.85rem;color:var(--yellow);letter-spacing:1px;}
+.vote-count-dim{font-size:0.62rem;color:rgba(255,255,255,0.3);font-weight:700;text-transform:uppercase;letter-spacing:0.5px;cursor:pointer;}
+.rate-modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.82);z-index:1000;align-items:center;justify-content:center;padding:1rem;backdrop-filter:blur(6px);}
+.rate-modal-bg.open{display:flex;}
+.rate-modal{background:#1a1a1a;border-radius:22px;padding:2rem;max-width:360px;width:100%;text-align:center;animation:popIn 0.22s ease-out;border:2px solid rgba(255,255,255,0.08);}
+.rate-modal-img{width:140px;height:140px;object-fit:contain;border-radius:14px;background:rgba(255,255,255,0.04);padding:10px;margin-bottom:1rem;}
+.rate-modal h3{font-family:'Boogaloo',cursive;font-size:1.5rem;margin-bottom:0.3rem;}
+.rate-modal-sub{font-size:0.82rem;color:rgba(255,255,255,0.5);margin-bottom:1.2rem;font-weight:600;}
+.rate-modal-stars{display:flex;justify-content:center;gap:10px;margin-bottom:1rem;}
+.rate-modal-star{font-size:2.8rem;cursor:pointer;transition:transform 0.12s;color:rgba(255,255,255,0.15);user-select:none;line-height:1;}
+.rate-modal-star.lit{color:var(--yellow);}
+.rate-modal-star:hover{transform:scale(1.2);}
+.rate-modal-selected{font-size:0.88rem;color:rgba(255,255,255,0.6);font-weight:700;margin-bottom:1.2rem;min-height:20px;}
+.rate-modal-actions{display:flex;gap:8px;}
+.rate-modal-already{background:rgba(255,217,61,0.1);border:2px solid rgba(255,217,61,0.25);border-radius:12px;padding:0.8rem;font-size:0.85rem;color:var(--yellow);font-weight:700;margin-bottom:1rem;}
 /* COMMUNITY */
 .community-section{max-width:680px;margin:0 auto;padding:0 1.2rem 3rem;position:relative;z-index:1;display:none;}
 .community-section.visible{display:block;}
@@ -302,6 +317,28 @@ footer{position:relative;z-index:1;text-align:center;padding:1.5rem;border-top:2
   </div>
 </div>
 
+
+<!-- RATING MODAL -->
+<div class="rate-modal-bg" id="rateModalBg" onclick="if(event.target===this)closeRateModal()">
+  <div class="rate-modal">
+    <img class="rate-modal-img" id="rateModalImg" src="" alt="">
+    <h3 id="rateModalTitle">RATE THIS IMAGE</h3>
+    <div class="rate-modal-sub" id="rateModalSub">HOW CHONKY IS THIS?</div>
+    <div class="rate-modal-already" id="rateModalAlready" style="display:none"></div>
+    <div class="rate-modal-stars" id="rateModalStars">
+      <span class="rate-modal-star" onmouseover="hoverRateStar(1)" onmouseout="unhoverRateStars()" onclick="selectRateStar(1)">★</span>
+      <span class="rate-modal-star" onmouseover="hoverRateStar(2)" onmouseout="unhoverRateStars()" onclick="selectRateStar(2)">★</span>
+      <span class="rate-modal-star" onmouseover="hoverRateStar(3)" onmouseout="unhoverRateStars()" onclick="selectRateStar(3)">★</span>
+      <span class="rate-modal-star" onmouseover="hoverRateStar(4)" onmouseout="unhoverRateStars()" onclick="selectRateStar(4)">★</span>
+      <span class="rate-modal-star" onmouseover="hoverRateStar(5)" onmouseout="unhoverRateStars()" onclick="selectRateStar(5)">★</span>
+    </div>
+    <div class="rate-modal-selected" id="rateModalSelected"></div>
+    <div class="rate-modal-actions">
+      <button class="btn btn-ghost" style="flex:1;padding:12px;" onclick="closeRateModal()">CANCEL</button>
+      <button class="btn btn-yellow" style="flex:1;padding:12px;" id="rateSubmitBtn" onclick="submitRating()">SUBMIT ★</button>
+    </div>
+  </div>
+</div>
 <div class="toast" id="toast"></div>
 <footer>2025 © CONTENT.CHONKY.COM — ALL RIGHTS RESERVED</footer>
 
@@ -311,7 +348,408 @@ const ADMIN_PASSWORD='chonky2025';
 const RAW=`https://raw.githubusercontent.com/${GITHUB_USER}/${GITHUB_REPO}/${GITHUB_BRANCH}`;
 const FOLDER_MAP={gifs:'gif',stickers:'stickers',art:'art'};
 
-let githubImages=JSON.parse(localStorage.getItem('chonky_github')||'[]');
+const PRELOADED_IMAGES=[{id:"gh_gifs_0205__1___1__gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/0205%20%281%29%20%281%29.gif",tag:"gifs",source:"github",label:"0205 (1) (1)",tags:[]},
+{id:"gh_gifs_0205__1__gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/0205%20%281%29.gif",tag:"gifs",source:"github",label:"0205 (1)",tags:[]},
+{id:"gh_gifs_15_gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/15.gif",tag:"gifs",source:"github",label:"15",tags:[]},
+{id:"gh_gifs_18__2__gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/18%20%282%29.gif",tag:"gifs",source:"github",label:"18 (2)",tags:[]},
+{id:"gh_gifs_231_ezgif_com_resize_gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/231-ezgif.com-resize.gif",tag:"gifs",source:"github",label:"231 ezgif.com resize",tags:[]},
+{id:"gh_gifs_25_gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/25.gif",tag:"gifs",source:"github",label:"25",tags:[]},
+{id:"gh_gifs_26_gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/26.gif",tag:"gifs",source:"github",label:"26",tags:[]},
+{id:"gh_gifs_36_gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/36.gif",tag:"gifs",source:"github",label:"36",tags:[]},
+{id:"gh_gifs_40_gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/40.gif",tag:"gifs",source:"github",label:"40",tags:[]},
+{id:"gh_gifs_41_gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/41.gif",tag:"gifs",source:"github",label:"41",tags:[]},
+{id:"gh_gifs_417c2aae_ba21_4d59_90e4_f771e28ecea0_gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/417c2aae-ba21-4d59-90e4-f771e28ecea0.gif",tag:"gifs",source:"github",label:"417c2aae ba21 4d59 90e4 f771e28ecea0",tags:[]},
+{id:"gh_gifs_42_gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/42.gif",tag:"gifs",source:"github",label:"42",tags:[]},
+{id:"gh_gifs_43_gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/43.gif",tag:"gifs",source:"github",label:"43",tags:[]},
+{id:"gh_gifs_43057002_140b_4db4_a79c_0e4372534b2f_1_gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/43057002-140b-4db4-a79c-0e4372534b2f-1.gif",tag:"gifs",source:"github",label:"43057002 140b 4db4 a79c 0e4372534b2f 1",tags:[]},
+{id:"gh_gifs_44_gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/44.gif",tag:"gifs",source:"github",label:"44",tags:[]},
+{id:"gh_gifs_45_gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/45.gif",tag:"gifs",source:"github",label:"45",tags:[]},
+{id:"gh_gifs_46_gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/46.gif",tag:"gifs",source:"github",label:"46",tags:[]},
+{id:"gh_gifs_48_gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/48.gif",tag:"gifs",source:"github",label:"48",tags:[]},
+{id:"gh_gifs_49c408d0_a24b_49db_b0a3_ee8834dee3f3_gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/49c408d0-a24b-49db-b0a3-ee8834dee3f3.gif",tag:"gifs",source:"github",label:"49c408d0 a24b 49db b0a3 ee8834dee3f3",tags:[]},
+{id:"gh_gifs_64_gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/64.gif",tag:"gifs",source:"github",label:"64",tags:[]},
+{id:"gh_gifs_69__1__gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/69%20%281%29.gif",tag:"gifs",source:"github",label:"69 (1)",tags:[]},
+{id:"gh_gifs_73_gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/73.gif",tag:"gifs",source:"github",label:"73",tags:[]},
+{id:"gh_gifs_74_gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/74.gif",tag:"gifs",source:"github",label:"74",tags:[]},
+{id:"gh_gifs_75_gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/75.gif",tag:"gifs",source:"github",label:"75",tags:[]},
+{id:"gh_gifs_76_gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/76.gif",tag:"gifs",source:"github",label:"76",tags:[]},
+{id:"gh_gifs_77__2__gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/77%20%282%29.gif",tag:"gifs",source:"github",label:"77 (2)",tags:[]},
+{id:"gh_gifs_77_gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/77.gif",tag:"gifs",source:"github",label:"77",tags:[]},
+{id:"gh_gifs_79_gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/79.gif",tag:"gifs",source:"github",label:"79",tags:[]},
+{id:"gh_gifs_871b2367_2655_4ce2_90f4_822e2724fbed_gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/871b2367-2655-4ce2-90f4-822e2724fbed.gif",tag:"gifs",source:"github",label:"871b2367 2655 4ce2 90f4 822e2724fbed",tags:[]},
+{id:"gh_gifs_9__1__gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/9%20%281%29.gif",tag:"gifs",source:"github",label:"9 (1)",tags:[]},
+{id:"gh_gifs_BOUNCE_gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/BOUNCE.gif",tag:"gifs",source:"github",label:"BOUNCE",tags:[]},
+{id:"gh_gifs_DAWG_gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/DAWG.gif",tag:"gifs",source:"github",label:"DAWG",tags:[]},
+{id:"gh_gifs_IMG_6025_gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/IMG_6025.gif",tag:"gifs",source:"github",label:"IMG 6025",tags:[]},
+{id:"gh_gifs_IMG_6443_gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/IMG_6443.gif",tag:"gifs",source:"github",label:"IMG 6443",tags:[]},
+{id:"gh_gifs_IMG_7726_gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/IMG_7726.gif",tag:"gifs",source:"github",label:"IMG 7726",tags:[]},
+{id:"gh_gifs_IMG_7807_gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/IMG_7807.gif",tag:"gifs",source:"github",label:"IMG 7807",tags:[]},
+{id:"gh_gifs_IMG_7835_gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/IMG_7835.gif",tag:"gifs",source:"github",label:"IMG 7835",tags:[]},
+{id:"gh_gifs_IMG_8141_gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/IMG_8141.gif",tag:"gifs",source:"github",label:"IMG 8141",tags:[]},
+{id:"gh_gifs_IMG_8146_gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/IMG_8146.gif",tag:"gifs",source:"github",label:"IMG 8146",tags:[]},
+{id:"gh_gifs_IMG_8152_gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/IMG_8152.gif",tag:"gifs",source:"github",label:"IMG 8152",tags:[]},
+{id:"gh_gifs_IMG_9208__1__gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/IMG_9208%20%281%29.gif",tag:"gifs",source:"github",label:"IMG 9208 (1)",tags:[]},
+{id:"gh_gifs_Untitled_126_gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/Untitled-126.gif",tag:"gifs",source:"github",label:"Untitled 126",tags:[]},
+{id:"gh_gifs_Untitled_136__1__gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/Untitled-136%20%281%29.gif",tag:"gifs",source:"github",label:"Untitled 136 (1)",tags:[]},
+{id:"gh_gifs_Untitled_137_gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/Untitled-137.gif",tag:"gifs",source:"github",label:"Untitled 137",tags:[]},
+{id:"gh_gifs_Untitled_138_gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/Untitled-138.gif",tag:"gifs",source:"github",label:"Untitled 138",tags:[]},
+{id:"gh_gifs_Untitled_139_gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/Untitled-139.gif",tag:"gifs",source:"github",label:"Untitled 139",tags:[]},
+{id:"gh_gifs_Untitled_140_gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/Untitled-140.gif",tag:"gifs",source:"github",label:"Untitled 140",tags:[]},
+{id:"gh_gifs_Untitled_141_gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/Untitled-141.gif",tag:"gifs",source:"github",label:"Untitled 141",tags:[]},
+{id:"gh_gifs_Untitled_143_gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/Untitled-143.gif",tag:"gifs",source:"github",label:"Untitled 143",tags:[]},
+{id:"gh_gifs_Untitled_144_gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/Untitled-144.gif",tag:"gifs",source:"github",label:"Untitled 144",tags:[]},
+{id:"gh_gifs_Untitled_145_gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/Untitled-145.gif",tag:"gifs",source:"github",label:"Untitled 145",tags:[]},
+{id:"gh_gifs_Untitled_146_gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/Untitled-146.gif",tag:"gifs",source:"github",label:"Untitled 146",tags:[]},
+{id:"gh_gifs_Untitled_147_gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/Untitled-147.gif",tag:"gifs",source:"github",label:"Untitled 147",tags:[]},
+{id:"gh_gifs_Untitled_148_gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/Untitled-148.gif",tag:"gifs",source:"github",label:"Untitled 148",tags:[]},
+{id:"gh_gifs_Untitled_150_gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/Untitled-150.gif",tag:"gifs",source:"github",label:"Untitled 150",tags:[]},
+{id:"gh_gifs_Untitled_151_gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/Untitled-151.gif",tag:"gifs",source:"github",label:"Untitled 151",tags:[]},
+{id:"gh_gifs_Untitled_152_gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/Untitled-152.gif",tag:"gifs",source:"github",label:"Untitled 152",tags:[]},
+{id:"gh_gifs_Untitled_153_gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/Untitled-153.gif",tag:"gifs",source:"github",label:"Untitled 153",tags:[]},
+{id:"gh_gifs_Untitled_154_gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/Untitled-154.gif",tag:"gifs",source:"github",label:"Untitled 154",tags:[]},
+{id:"gh_gifs_Untitled_160_gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/Untitled-160.gif",tag:"gifs",source:"github",label:"Untitled 160",tags:[]},
+{id:"gh_gifs_Untitled_161__1__gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/Untitled-161%20%281%29.gif",tag:"gifs",source:"github",label:"Untitled 161 (1)",tags:[]},
+{id:"gh_gifs_Untitled_161_gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/Untitled-161.gif",tag:"gifs",source:"github",label:"Untitled 161",tags:[]},
+{id:"gh_gifs_Untitled_162_gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/Untitled-162.gif",tag:"gifs",source:"github",label:"Untitled 162",tags:[]},
+{id:"gh_gifs_Untitled_163_gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/Untitled-163.gif",tag:"gifs",source:"github",label:"Untitled 163",tags:[]},
+{id:"gh_gifs_Untitled_164_gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/Untitled-164.gif",tag:"gifs",source:"github",label:"Untitled 164",tags:[]},
+{id:"gh_gifs_bbb30144_4be0_409c_bff5_04a9f8fea904_gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/bbb30144-4be0-409c-bff5-04a9f8fea904.gif",tag:"gifs",source:"github",label:"bbb30144 4be0 409c bff5 04a9f8fea904",tags:[]},
+{id:"gh_gifs_c2decc89_9ea7_4cc1_a3a5_47c93789ae37_gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/c2decc89-9ea7-4cc1-a3a5-47c93789ae37.gif",tag:"gifs",source:"github",label:"c2decc89 9ea7 4cc1 a3a5 47c93789ae37",tags:[]},
+{id:"gh_gifs_c787c259_543c_4049_83a8_eba6db69fece_gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/c787c259-543c-4049-83a8-eba6db69fece.gif",tag:"gifs",source:"github",label:"c787c259 543c 4049 83a8 eba6db69fece",tags:[]},
+{id:"gh_gifs_chicken_gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/chicken.gif",tag:"gifs",source:"github",label:"chicken",tags:[]},
+{id:"gh_gifs_chonky__59__gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/chonky%20%2859%29.gif",tag:"gifs",source:"github",label:"chonky (59)",tags:[]},
+{id:"gh_gifs_chonky__60__gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/chonky%20%2860%29.gif",tag:"gifs",source:"github",label:"chonky (60)",tags:[]},
+{id:"gh_gifs_chonky__61__gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/chonky%20%2861%29.gif",tag:"gifs",source:"github",label:"chonky (61)",tags:[]},
+{id:"gh_gifs_chonky__62__gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/chonky%20%2862%29.gif",tag:"gifs",source:"github",label:"chonky (62)",tags:[]},
+{id:"gh_gifs_chonky__63__gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/chonky%20%2863%29.gif",tag:"gifs",source:"github",label:"chonky (63)",tags:[]},
+{id:"gh_gifs_chonky__64__gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/chonky%20%2864%29.gif",tag:"gifs",source:"github",label:"chonky (64)",tags:[]},
+{id:"gh_gifs_chonky__65__gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/chonky%20%2865%29.gif",tag:"gifs",source:"github",label:"chonky (65)",tags:[]},
+{id:"gh_gifs_chonky__66__gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/chonky%20%2866%29.gif",tag:"gifs",source:"github",label:"chonky (66)",tags:[]},
+{id:"gh_gifs_chonky__67__gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/chonky%20%2867%29.gif",tag:"gifs",source:"github",label:"chonky (67)",tags:[]},
+{id:"gh_gifs_chonky__68__gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/chonky%20%2868%29.gif",tag:"gifs",source:"github",label:"chonky (68)",tags:[]},
+{id:"gh_gifs_chonky__69__gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/chonky%20%2869%29.gif",tag:"gifs",source:"github",label:"chonky (69)",tags:[]},
+{id:"gh_gifs_chonky__70__gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/chonky%20%2870%29.gif",tag:"gifs",source:"github",label:"chonky (70)",tags:[]},
+{id:"gh_gifs_chonky__71__gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/chonky%20%2871%29.gif",tag:"gifs",source:"github",label:"chonky (71)",tags:[]},
+{id:"gh_gifs_chonky__72__gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/chonky%20%2872%29.gif",tag:"gifs",source:"github",label:"chonky (72)",tags:[]},
+{id:"gh_gifs_chonky__73__gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/chonky%20%2873%29.gif",tag:"gifs",source:"github",label:"chonky (73)",tags:[]},
+{id:"gh_gifs_chonky__74__gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/chonky%20%2874%29.gif",tag:"gifs",source:"github",label:"chonky (74)",tags:[]},
+{id:"gh_gifs_chonky__75__gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/chonky%20%2875%29.gif",tag:"gifs",source:"github",label:"chonky (75)",tags:[]},
+{id:"gh_gifs_chonky__76__gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/chonky%20%2876%29.gif",tag:"gifs",source:"github",label:"chonky (76)",tags:[]},
+{id:"gh_gifs_chonky__77__gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/chonky%20%2877%29.gif",tag:"gifs",source:"github",label:"chonky (77)",tags:[]},
+{id:"gh_gifs_chonky__78__gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/chonky%20%2878%29.gif",tag:"gifs",source:"github",label:"chonky (78)",tags:[]},
+{id:"gh_gifs_chonky__79__gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/chonky%20%2879%29.gif",tag:"gifs",source:"github",label:"chonky (79)",tags:[]},
+{id:"gh_gifs_chonky__80__gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/chonky%20%2880%29.gif",tag:"gifs",source:"github",label:"chonky (80)",tags:[]},
+{id:"gh_gifs_chonky__81__gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/chonky%20%2881%29.gif",tag:"gifs",source:"github",label:"chonky (81)",tags:[]},
+{id:"gh_gifs_chonky__82__gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/chonky%20%2882%29.gif",tag:"gifs",source:"github",label:"chonky (82)",tags:[]},
+{id:"gh_gifs_chonky__83__gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/chonky%20%2883%29.gif",tag:"gifs",source:"github",label:"chonky (83)",tags:[]},
+{id:"gh_gifs_chonky__84__gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/chonky%20%2884%29.gif",tag:"gifs",source:"github",label:"chonky (84)",tags:[]},
+{id:"gh_gifs_chonky__85__gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/chonky%20%2885%29.gif",tag:"gifs",source:"github",label:"chonky (85)",tags:[]},
+{id:"gh_gifs_chonky__86__gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/chonky%20%2886%29.gif",tag:"gifs",source:"github",label:"chonky (86)",tags:[]},
+{id:"gh_gifs_chonky__87__gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/chonky%20%2887%29.gif",tag:"gifs",source:"github",label:"chonky (87)",tags:[]},
+{id:"gh_gifs_chonky__88__gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/chonky%20%2888%29.gif",tag:"gifs",source:"github",label:"chonky (88)",tags:[]},
+{id:"gh_gifs_chonky__89__gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/chonky%20%2889%29.gif",tag:"gifs",source:"github",label:"chonky (89)",tags:[]},
+{id:"gh_gifs_chonky__90__gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/chonky%20%2890%29.gif",tag:"gifs",source:"github",label:"chonky (90)",tags:[]},
+{id:"gh_gifs_chonky__91__gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/chonky%20%2891%29.gif",tag:"gifs",source:"github",label:"chonky (91)",tags:[]},
+{id:"gh_gifs_chonky__92__gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/chonky%20%2892%29.gif",tag:"gifs",source:"github",label:"chonky (92)",tags:[]},
+{id:"gh_gifs_chonky__93__gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/chonky%20%2893%29.gif",tag:"gifs",source:"github",label:"chonky (93)",tags:[]},
+{id:"gh_gifs_chonky__94__gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/chonky%20%2894%29.gif",tag:"gifs",source:"github",label:"chonky (94)",tags:[]},
+{id:"gh_gifs_chonky__95__gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/chonky%20%2895%29.gif",tag:"gifs",source:"github",label:"chonky (95)",tags:[]},
+{id:"gh_gifs_chonky__96__gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/chonky%20%2896%29.gif",tag:"gifs",source:"github",label:"chonky (96)",tags:[]},
+{id:"gh_gifs_chonky__97__gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/chonky%20%2897%29.gif",tag:"gifs",source:"github",label:"chonky (97)",tags:[]},
+{id:"gh_gifs_chonky__98__gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/chonky%20%2898%29.gif",tag:"gifs",source:"github",label:"chonky (98)",tags:[]},
+{id:"gh_gifs_f3d497f9_a0b2_43ff_8c75_e1be611586c6_gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/f3d497f9-a0b2-43ff-8c75-e1be611586c6.gif",tag:"gifs",source:"github",label:"f3d497f9 a0b2 43ff 8c75 e1be611586c6",tags:[]},
+{id:"gh_gifs_fbcd3122_f37a_4079_896a_f1cb39381744_gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/fbcd3122-f37a-4079-896a-f1cb39381744.gif",tag:"gifs",source:"github",label:"fbcd3122 f37a 4079 896a f1cb39381744",tags:[]},
+{id:"gh_gifs_funny_face_lolol_2_gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/funny-face-lolol_2.gif",tag:"gifs",source:"github",label:"funny face lolol 2",tags:[]},
+{id:"gh_gifs_giphy__29__gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/giphy%20%2829%29.gif",tag:"gifs",source:"github",label:"giphy (29)",tags:[]},
+{id:"gh_gifs_giphy__30__gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/giphy%20%2830%29.gif",tag:"gifs",source:"github",label:"giphy (30)",tags:[]},
+{id:"gh_gifs_giphy__31__gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/giphy%20%2831%29.gif",tag:"gifs",source:"github",label:"giphy (31)",tags:[]},
+{id:"gh_gifs_giphy__32__gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/giphy%20%2832%29.gif",tag:"gifs",source:"github",label:"giphy (32)",tags:[]},
+{id:"gh_gifs_giphy__33__gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/giphy%20%2833%29.gif",tag:"gifs",source:"github",label:"giphy (33)",tags:[]},
+{id:"gh_gifs_giphy__34__gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/giphy%20%2834%29.gif",tag:"gifs",source:"github",label:"giphy (34)",tags:[]},
+{id:"gh_gifs_giphy__35__gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/giphy%20%2835%29.gif",tag:"gifs",source:"github",label:"giphy (35)",tags:[]},
+{id:"gh_gifs_giphy__37__gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/giphy%20%2837%29.gif",tag:"gifs",source:"github",label:"giphy (37)",tags:[]},
+{id:"gh_gifs_grok_video_c9fd594b_43d3_4f6e_9594_4e6738194cbe_2_gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/grok-video-c9fd594b-43d3-4f6e-9594-4e6738194cbe_2.gif",tag:"gifs",source:"github",label:"grok video c9fd594b 43d3 4f6e 9594 4e6738194cbe 2",tags:[]},
+{id:"gh_gifs_output_bbjJlR_gif",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/gif/output_bbjJlR.gif",tag:"gifs",source:"github",label:"output bbjJlR",tags:[]},
+{id:"gh_stickers_1_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/1.png",tag:"stickers",source:"github",label:"1",tags:[]},
+{id:"gh_stickers_10_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/10.png",tag:"stickers",source:"github",label:"10",tags:[]},
+{id:"gh_stickers_101__1__png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/101%20%281%29.png",tag:"stickers",source:"github",label:"101 (1)",tags:[]},
+{id:"gh_stickers_1080_x_1920_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/1080%20x%201920.png",tag:"stickers",source:"github",label:"1080 x 1920",tags:[]},
+{id:"gh_stickers_11__4__png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/11%20%284%29.png",tag:"stickers",source:"github",label:"11 (4)",tags:[]},
+{id:"gh_stickers_11_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/11.png",tag:"stickers",source:"github",label:"11",tags:[]},
+{id:"gh_stickers_12_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/12.png",tag:"stickers",source:"github",label:"12",tags:[]},
+{id:"gh_stickers_13_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/13.png",tag:"stickers",source:"github",label:"13",tags:[]},
+{id:"gh_stickers_133__1__png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/133%20%281%29.png",tag:"stickers",source:"github",label:"133 (1)",tags:[]},
+{id:"gh_stickers_134__2__png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/134%20%282%29.png",tag:"stickers",source:"github",label:"134 (2)",tags:[]},
+{id:"gh_stickers_14__2__png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/14%20%282%29.png",tag:"stickers",source:"github",label:"14 (2)",tags:[]},
+{id:"gh_stickers_14_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/14.png",tag:"stickers",source:"github",label:"14",tags:[]},
+{id:"gh_stickers_144_3_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/144_3.png",tag:"stickers",source:"github",label:"144 3",tags:[]},
+{id:"gh_stickers_15_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/15.png",tag:"stickers",source:"github",label:"15",tags:[]},
+{id:"gh_stickers_16___Copy_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/16%20-%20Copy.png",tag:"stickers",source:"github",label:"16   Copy",tags:[]},
+{id:"gh_stickers_16_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/16.png",tag:"stickers",source:"github",label:"16",tags:[]},
+{id:"gh_stickers_167__1__png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/167%20%281%29.png",tag:"stickers",source:"github",label:"167 (1)",tags:[]},
+{id:"gh_stickers_17___Copy_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/17%20-%20Copy.png",tag:"stickers",source:"github",label:"17   Copy",tags:[]},
+{id:"gh_stickers_17_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/17.png",tag:"stickers",source:"github",label:"17",tags:[]},
+{id:"gh_stickers_18___Copy_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/18%20-%20Copy.png",tag:"stickers",source:"github",label:"18   Copy",tags:[]},
+{id:"gh_stickers_18_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/18.png",tag:"stickers",source:"github",label:"18",tags:[]},
+{id:"gh_stickers_2_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/2.png",tag:"stickers",source:"github",label:"2",tags:[]},
+{id:"gh_stickers_24__2__png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/24%20%282%29.png",tag:"stickers",source:"github",label:"24 (2)",tags:[]},
+{id:"gh_stickers_3_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/3.png",tag:"stickers",source:"github",label:"3",tags:[]},
+{id:"gh_stickers_37_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/37.png",tag:"stickers",source:"github",label:"37",tags:[]},
+{id:"gh_stickers_39__2__png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/39%20%282%29.png",tag:"stickers",source:"github",label:"39 (2)",tags:[]},
+{id:"gh_stickers_4__4__png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/4%20%284%29.png",tag:"stickers",source:"github",label:"4 (4)",tags:[]},
+{id:"gh_stickers_4_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/4.png",tag:"stickers",source:"github",label:"4",tags:[]},
+{id:"gh_stickers_5_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/5.png",tag:"stickers",source:"github",label:"5",tags:[]},
+{id:"gh_stickers_55__9__png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/55%20%289%29.png",tag:"stickers",source:"github",label:"55 (9)",tags:[]},
+{id:"gh_stickers_6_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/6.png",tag:"stickers",source:"github",label:"6",tags:[]},
+{id:"gh_stickers_67_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/67.png",tag:"stickers",source:"github",label:"67",tags:[]},
+{id:"gh_stickers_68__1__png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/68%20%281%29.png",tag:"stickers",source:"github",label:"68 (1)",tags:[]},
+{id:"gh_stickers_7_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/7.png",tag:"stickers",source:"github",label:"7",tags:[]},
+{id:"gh_stickers_8_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/8.png",tag:"stickers",source:"github",label:"8",tags:[]},
+{id:"gh_stickers_9_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/9.png",tag:"stickers",source:"github",label:"9",tags:[]},
+{id:"gh_stickers_ChatGPT_Image_Mar_19__2026__03_24_20_AM_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/ChatGPT%20Image%20Mar%2019%2C%202026%2C%2003_24_20%20AM.png",tag:"stickers",source:"github",label:"ChatGPT Image Mar 19, 2026, 03 24 20 AM",tags:[]},
+{id:"gh_stickers_ChatGPT_Image_Mar_2__2026__05_02_13_PM__1__png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/ChatGPT%20Image%20Mar%202%2C%202026%2C%2005_02_13%20PM%20%281%29.png",tag:"stickers",source:"github",label:"ChatGPT Image Mar 2, 2026, 05 02 13 PM (1)",tags:[]},
+{id:"gh_stickers_ChatGPT_Image_Mar_7__2026__10_44_46_PM_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/ChatGPT%20Image%20Mar%207%2C%202026%2C%2010_44_46%20PM.png",tag:"stickers",source:"github",label:"ChatGPT Image Mar 7, 2026, 10 44 46 PM",tags:[]},
+{id:"gh_stickers_IMG_3573_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/IMG_3573.png",tag:"stickers",source:"github",label:"IMG 3573",tags:[]},
+{id:"gh_stickers_Layer_10_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/Layer%2010.png",tag:"stickers",source:"github",label:"Layer 10",tags:[]},
+{id:"gh_stickers_New_Project___2026_01_23T130834_552_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/New%20Project%20-%202026-01-23T130834.552.png",tag:"stickers",source:"github",label:"New Project   2026 01 23T130834.552",tags:[]},
+{id:"gh_stickers_New_Project___2026_02_04T111735_972_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/New%20Project%20-%202026-02-04T111735.972.png",tag:"stickers",source:"github",label:"New Project   2026 02 04T111735.972",tags:[]},
+{id:"gh_stickers_New_Project___2026_03_10T224739_047_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/New%20Project%20-%202026-03-10T224739.047.png",tag:"stickers",source:"github",label:"New Project   2026 03 10T224739.047",tags:[]},
+{id:"gh_stickers_New_Project___2026_03_16T114307_021_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/New%20Project%20-%202026-03-16T114307.021.png",tag:"stickers",source:"github",label:"New Project   2026 03 16T114307.021",tags:[]},
+{id:"gh_stickers_New_Project___2026_03_19T034828_760_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/New%20Project%20-%202026-03-19T034828.760.png",tag:"stickers",source:"github",label:"New Project   2026 03 19T034828.760",tags:[]},
+{id:"gh_stickers_New_Project___2024_08_21T210838_040_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/New_Project_-_2024-08-21T210838.040.png",tag:"stickers",source:"github",label:"New Project   2024 08 21T210838.040",tags:[]},
+{id:"gh_stickers_Untitled_113_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/Untitled-113.png",tag:"stickers",source:"github",label:"Untitled 113",tags:[]},
+{id:"gh_stickers_Untitled_114_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/Untitled-114.png",tag:"stickers",source:"github",label:"Untitled 114",tags:[]},
+{id:"gh_stickers_Untitled_115_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/Untitled-115.png",tag:"stickers",source:"github",label:"Untitled 115",tags:[]},
+{id:"gh_stickers_Untitled_116_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/Untitled-116.png",tag:"stickers",source:"github",label:"Untitled 116",tags:[]},
+{id:"gh_stickers_Untitled_117_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/Untitled-117.png",tag:"stickers",source:"github",label:"Untitled 117",tags:[]},
+{id:"gh_stickers_Untitled_118_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/Untitled-118.png",tag:"stickers",source:"github",label:"Untitled 118",tags:[]},
+{id:"gh_stickers_Untitled_119_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/Untitled-119.png",tag:"stickers",source:"github",label:"Untitled 119",tags:[]},
+{id:"gh_stickers_Untitled_120_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/Untitled-120.png",tag:"stickers",source:"github",label:"Untitled 120",tags:[]},
+{id:"gh_stickers_Untitled_121_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/Untitled-121.png",tag:"stickers",source:"github",label:"Untitled 121",tags:[]},
+{id:"gh_stickers_Untitled_122_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/Untitled-122.png",tag:"stickers",source:"github",label:"Untitled 122",tags:[]},
+{id:"gh_stickers_Untitled_123_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/Untitled-123.png",tag:"stickers",source:"github",label:"Untitled 123",tags:[]},
+{id:"gh_stickers_Untitled_124_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/Untitled-124.png",tag:"stickers",source:"github",label:"Untitled 124",tags:[]},
+{id:"gh_stickers_Untitled_125_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/Untitled-125.png",tag:"stickers",source:"github",label:"Untitled 125",tags:[]},
+{id:"gh_stickers_Untitled_136_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/Untitled-136.png",tag:"stickers",source:"github",label:"Untitled 136",tags:[]},
+{id:"gh_stickers_Untitled_137_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/Untitled-137.png",tag:"stickers",source:"github",label:"Untitled 137",tags:[]},
+{id:"gh_stickers_Untitled_139_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/Untitled-139.png",tag:"stickers",source:"github",label:"Untitled 139",tags:[]},
+{id:"gh_stickers_Untitled_140_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/Untitled-140.png",tag:"stickers",source:"github",label:"Untitled 140",tags:[]},
+{id:"gh_stickers_Untitled_141_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/Untitled-141.png",tag:"stickers",source:"github",label:"Untitled 141",tags:[]},
+{id:"gh_stickers_Untitled_142_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/Untitled-142.png",tag:"stickers",source:"github",label:"Untitled 142",tags:[]},
+{id:"gh_stickers_Untitled_143_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/Untitled-143.png",tag:"stickers",source:"github",label:"Untitled 143",tags:[]},
+{id:"gh_stickers_Untitled_145_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/Untitled-145.png",tag:"stickers",source:"github",label:"Untitled 145",tags:[]},
+{id:"gh_stickers_Untitled_146_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/Untitled-146.png",tag:"stickers",source:"github",label:"Untitled 146",tags:[]},
+{id:"gh_stickers_Untitled_147_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/Untitled-147.png",tag:"stickers",source:"github",label:"Untitled 147",tags:[]},
+{id:"gh_stickers_Untitled_148_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/Untitled-148.png",tag:"stickers",source:"github",label:"Untitled 148",tags:[]},
+{id:"gh_stickers_Untitled_149_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/Untitled-149.png",tag:"stickers",source:"github",label:"Untitled 149",tags:[]},
+{id:"gh_stickers_Untitled_150_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/Untitled-150.png",tag:"stickers",source:"github",label:"Untitled 150",tags:[]},
+{id:"gh_stickers_Untitled_151_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/Untitled-151.png",tag:"stickers",source:"github",label:"Untitled 151",tags:[]},
+{id:"gh_stickers_Untitled_152_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/Untitled-152.png",tag:"stickers",source:"github",label:"Untitled 152",tags:[]},
+{id:"gh_stickers_Untitled_153_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/Untitled-153.png",tag:"stickers",source:"github",label:"Untitled 153",tags:[]},
+{id:"gh_stickers_Untitled_154_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/Untitled-154.png",tag:"stickers",source:"github",label:"Untitled 154",tags:[]},
+{id:"gh_stickers_Untitled_155_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/Untitled-155.png",tag:"stickers",source:"github",label:"Untitled 155",tags:[]},
+{id:"gh_stickers_Untitled_156_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/Untitled-156.png",tag:"stickers",source:"github",label:"Untitled 156",tags:[]},
+{id:"gh_stickers_Untitled_157_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/Untitled-157.png",tag:"stickers",source:"github",label:"Untitled 157",tags:[]},
+{id:"gh_stickers_Untitled_48_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/Untitled-48.png",tag:"stickers",source:"github",label:"Untitled 48",tags:[]},
+{id:"gh_stickers_Untitled_50_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/Untitled-50.png",tag:"stickers",source:"github",label:"Untitled 50",tags:[]},
+{id:"gh_stickers_anime_manga_cartoon_image_of_a_giant_green_block_arrow_breaking_out_of_the_ground__thin_and_shooting_from_the_ground_all_the_way_up_to_the_sky__top_of_the_block_shaped_like_an_arrow_pointing_up__setting_in_a_fie__1__png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/anime%20manga%20cartoon%20image%20of%20a%20giant%20green%20block%20arrow%20breaking%20out%20of%20the%20ground%2C%20thin%20and%20shooting%20from%20the%20ground%20all%20the%20way%20up%20to%20the%20sky%2C%20top%20of%20the%20block%20shaped%20like%20an%20arrow%20pointing%20up%2C%20setting%20in%20a%20fie%20%281%29.png",tag:"stickers",source:"github",label:"anime manga cartoon image of a giant green block arrow breaking out of the ground, thin and shooting from the ground all the way up to the sky, top of the block shaped like an arrow pointing up, setting in a fie (1)",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195641_034_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195641.034.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195641.034",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195641_957_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195641.957.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195641.957",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195643_308_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195643.308.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195643.308",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195644_743_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195644.743.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195644.743",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195646_058_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195646.058.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195646.058",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195646_805_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195646.805.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195646.805",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195648_040_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195648.040.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195648.040",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195650_545_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195650.545.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195650.545",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195652_124_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195652.124.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195652.124",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195653_575_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195653.575.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195653.575",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195656_483_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195656.483.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195656.483",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195659_066_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195659.066.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195659.066",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195700_349_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195700.349.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195700.349",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195703_200_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195703.200.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195703.200",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195704_821_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195704.821.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195704.821",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195706_263_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195706.263.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195706.263",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195707_431_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195707.431.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195707.431",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195709_056_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195709.056.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195709.056",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195713_191_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195713.191.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195713.191",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195714_359_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195714.359.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195714.359",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195715_711_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195715.711.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195715.711",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195717_963_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195717.963.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195717.963",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195718_914_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195718.914.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195718.914",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195719_688_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195719.688.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195719.688",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195720_374_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195720.374.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195720.374",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195721_000_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195721.000.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195721.000",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195721_648_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195721.648.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195721.648",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195722_683_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195722.683.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195722.683",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195723_308_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195723.308.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195723.308",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195723_963_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195723.963.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195723.963",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195724_871_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195724.871.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195724.871",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195725_616_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195725.616.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195725.616",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195727_224_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195727.224.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195727.224",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195727_966_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195727.966.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195727.966",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195728_700_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195728.700.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195728.700",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195729_339_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195729.339.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195729.339",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195730_089_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195730.089.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195730.089",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195731_644_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195731.644.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195731.644",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195732_267_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195732.267.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195732.267",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195732_907_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195732.907.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195732.907",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195733_535_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195733.535.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195733.535",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195734_381_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195734.381.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195734.381",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195735_801_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195735.801.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195735.801",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195736_381_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195736.381.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195736.381",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195736_997_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195736.997.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195736.997",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195737_808_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195737.808.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195737.808",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195738_472_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195738.472.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195738.472",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195739_827_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195739.827.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195739.827",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195740_455_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195740.455.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195740.455",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195741_018_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195741.018.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195741.018",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195741_704_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195741.704.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195741.704",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195742_313_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195742.313.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195742.313",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195743_379_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195743.379.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195743.379",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195744_056_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195744.056.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195744.056",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195744_774_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195744.774.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195744.774",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195745_420_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195745.420.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195745.420",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195746_207_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195746.207.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195746.207",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195747_536_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195747.536.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195747.536",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195748_117_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195748.117.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195748.117",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195748_855_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195748.855.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195748.855",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195749_997_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195749.997.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195749.997",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195750_632_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195750.632.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195750.632",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195752_128_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195752.128.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195752.128",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195752_731_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195752.731.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195752.731",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195753_898_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195753.898.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195753.898",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195754_451_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195754.451.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195754.451",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195755_637_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195755.637.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195755.637",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195757_372_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195757.372.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195757.372",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195757_993_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195757.993.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195757.993",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195758_615_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195758.615.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195758.615",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195759_174_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195759.174.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195759.174",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195759_814_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195759.814.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195759.814",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195801_414_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195801.414.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195801.414",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195802_132_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195802.132.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195802.132",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195802_903_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195802.903.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195802.903",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195803_611_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195803.611.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195803.611",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195804_372_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195804.372.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195804.372",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195805_214_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195805.214.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195805.214",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195805_933_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195805.933.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195805.933",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195806_727_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195806.727.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195806.727",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195807_609_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195807.609.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195807.609",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195808_651_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195808.651.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195808.651",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195810_417_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195810.417.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195810.417",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195810_969_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195810.969.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195810.969",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195811_740_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195811.740.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195811.740",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195812_276_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195812.276.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195812.276",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195812_921_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195812.921.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195812.921",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195813_742_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195813.742.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195813.742",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195814_431_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195814.431.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195814.431",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195815_164_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195815.164.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195815.164",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195815_848_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195815.848.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195815.848",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195816_596_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195816.596.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195816.596",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195818_762_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195818.762.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195818.762",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195819_610_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195819.610.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195819.610",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195820_244_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195820.244.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195820.244",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195820_955_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195820.955.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195820.955",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195822_310_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195822.310.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195822.310",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195823_138_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195823.138.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195823.138",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195823_876_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195823.876.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195823.876",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195824_634_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195824.634.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195824.634",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195825_228_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195825.228.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195825.228",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195825_930_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195825.930.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195825.930",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195827_954_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195827.954.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195827.954",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195828_482_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195828.482.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195828.482",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195829_018_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195829.018.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195829.018",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195829_593_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195829.593.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195829.593",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195830_179_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195830.179.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195830.179",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195831_344_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195831.344.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195831.344",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195831_848_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195831.848.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195831.848",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195833_132_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195833.132.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195833.132",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195833_768_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195833.768.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195833.768",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195834_462_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195834.462.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195834.462",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195836_014_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195836.014.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195836.014",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195836_541_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195836.541.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195836.541",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195837_060_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195837.060.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195837.060",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195838_339_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195838.339.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195838.339",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195839_303_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195839.303.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195839.303",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195840_756_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195840.756.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195840.756",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195841_870_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195841.870.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195841.870",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195843_182_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195843.182.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195843.182",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195843_867_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195843.867.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195843.867",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195844_807_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195844.807.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195844.807",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195845_681_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195845.681.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195845.681",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195846_652_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195846.652.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195846.652",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195847_301_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195847.301.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195847.301",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195848_264_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195848.264.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195848.264",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195849_075_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195849.075.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195849.075",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195850_548_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195850.548.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195850.548",tags:[]},
+{id:"gh_stickers_chonky___2025_03_13T195851_282_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/chonky%20-%202025-03-13T195851.282.png",tag:"stickers",source:"github",label:"chonky   2025 03 13T195851.282",tags:[]},
+{id:"gh_stickers_denx__its_a_cat_skateboarding_on_a_half_pipe_in_the_style_of_to_8a13a222_c856_4401_910a_117ebbaea001_1_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/denx._its_a_cat_skateboarding_on_a_half_pipe_in_the_style_of_to_8a13a222-c856-4401-910a-117ebbaea001_1.png",tag:"stickers",source:"github",label:"denx. its a cat skateboarding on a half pipe in the style of to 8a13a222 c856 4401 910a 117ebbaea001 1",tags:[]},
+{id:"gh_stickers_image__43__jpg",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/image%20%2843%29.jpg",tag:"stickers",source:"github",label:"image (43)",tags:[]},
+{id:"gh_stickers_image__44___1__png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/image%20%2844%29%20%281%29.png",tag:"stickers",source:"github",label:"image (44) (1)",tags:[]},
+{id:"gh_stickers_image__44__jpg",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/image%20%2844%29.jpg",tag:"stickers",source:"github",label:"image (44)",tags:[]},
+{id:"gh_stickers_image__47__jpg",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/image%20%2847%29.jpg",tag:"stickers",source:"github",label:"image (47)",tags:[]},
+{id:"gh_stickers_skate_chonky_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/stickers/skate%20chonky.png",tag:"stickers",source:"github",label:"skate chonky",tags:[]},
+{id:"gh_art_ChatGPT_Image_Jan_13__2026__09_09_51_PM__1__png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/art/ChatGPT%20Image%20Jan%2013%2C%202026%2C%2009_09_51%20PM%20%281%29.png",tag:"art",source:"github",label:"ChatGPT Image Jan 13, 2026, 09 09 51 PM (1)",tags:[]},
+{id:"gh_art_ChatGPT_Image_Jan_8__2026__12_55_39_AM__1__png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/art/ChatGPT%20Image%20Jan%208%2C%202026%2C%2012_55_39%20AM%20%281%29.png",tag:"art",source:"github",label:"ChatGPT Image Jan 8, 2026, 12 55 39 AM (1)",tags:[]},
+{id:"gh_art_Group_1000003616__2__png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/art/Group%201000003616%20%282%29.png",tag:"art",source:"github",label:"Group 1000003616 (2)",tags:[]},
+{id:"gh_art_New_Project___2024_05_01T235919_993_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/art/New%20Project%20-%202024-05-01T235919.993.png",tag:"art",source:"github",label:"New Project   2024 05 01T235919.993",tags:[]},
+{id:"gh_art_New_Project___2024_05_02T121742_917_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/art/New%20Project%20-%202024-05-02T121742.917.png",tag:"art",source:"github",label:"New Project   2024 05 02T121742.917",tags:[]},
+{id:"gh_art_New_Project___2025_03_11T135012_785_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/art/New%20Project%20-%202025-03-11T135012.785.png",tag:"art",source:"github",label:"New Project   2025 03 11T135012.785",tags:[]},
+{id:"gh_art_New_Project___2025_03_20T100837_746_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/art/New%20Project%20-%202025-03-20T100837.746.png",tag:"art",source:"github",label:"New Project   2025 03 20T100837.746",tags:[]},
+{id:"gh_art_New_Project___2025_04_03T131452_023_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/art/New%20Project%20-%202025-04-03T131452.023.png",tag:"art",source:"github",label:"New Project   2025 04 03T131452.023",tags:[]},
+{id:"gh_art_New_Project___2025_04_03T164004_751_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/art/New%20Project%20-%202025-04-03T164004.751.png",tag:"art",source:"github",label:"New Project   2025 04 03T164004.751",tags:[]},
+{id:"gh_art_New_Project___2025_04_11T194542_909_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/art/New%20Project%20-%202025-04-11T194542.909.png",tag:"art",source:"github",label:"New Project   2025 04 11T194542.909",tags:[]},
+{id:"gh_art_New_Project___2025_06_09T143919_886_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/art/New%20Project%20-%202025-06-09T143919.886.png",tag:"art",source:"github",label:"New Project   2025 06 09T143919.886",tags:[]},
+{id:"gh_art_New_Project___2025_08_17T203011_342_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/art/New%20Project%20-%202025-08-17T203011.342.png",tag:"art",source:"github",label:"New Project   2025 08 17T203011.342",tags:[]},
+{id:"gh_art_New_Project___2026_01_08T003830_650_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/art/New%20Project%20-%202026-01-08T003830.650.png",tag:"art",source:"github",label:"New Project   2026 01 08T003830.650",tags:[]},
+{id:"gh_art_New_Project___2026_01_08T200025_628_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/art/New%20Project%20-%202026-01-08T200025.628.png",tag:"art",source:"github",label:"New Project   2026 01 08T200025.628",tags:[]},
+{id:"gh_art_New_Project___2026_01_14T120321_121_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/art/New%20Project%20-%202026-01-14T120321.121.png",tag:"art",source:"github",label:"New Project   2026 01 14T120321.121",tags:[]},
+{id:"gh_art_New_Project___2026_01_22T225723_137_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/art/New%20Project%20-%202026-01-22T225723.137.png",tag:"art",source:"github",label:"New Project   2026 01 22T225723.137",tags:[]},
+{id:"gh_art_New_Project___2026_01_23T130834_552__1__png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/art/New%20Project%20-%202026-01-23T130834.552%20%281%29.png",tag:"art",source:"github",label:"New Project   2026 01 23T130834.552 (1)",tags:[]},
+{id:"gh_art_New_Project___2026_01_23T211649_350_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/art/New%20Project%20-%202026-01-23T211649.350.png",tag:"art",source:"github",label:"New Project   2026 01 23T211649.350",tags:[]},
+{id:"gh_art_New_Project___2026_02_02T122051_240_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/art/New%20Project%20-%202026-02-02T122051.240.png",tag:"art",source:"github",label:"New Project   2026 02 02T122051.240",tags:[]},
+{id:"gh_art_New_Project___2026_02_02T123500_496_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/art/New%20Project%20-%202026-02-02T123500.496.png",tag:"art",source:"github",label:"New Project   2026 02 02T123500.496",tags:[]},
+{id:"gh_art_New_Project___2026_02_04T112356_603_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/art/New%20Project%20-%202026-02-04T112356.603.png",tag:"art",source:"github",label:"New Project   2026 02 04T112356.603",tags:[]},
+{id:"gh_art_New_Project___2026_02_04T183957_803_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/art/New%20Project%20-%202026-02-04T183957.803.png",tag:"art",source:"github",label:"New Project   2026 02 04T183957.803",tags:[]},
+{id:"gh_art_New_Project___2026_02_21T131626_057_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/art/New%20Project%20-%202026-02-21T131626.057.png",tag:"art",source:"github",label:"New Project   2026 02 21T131626.057",tags:[]},
+{id:"gh_art_New_Project___2026_02_23T114223_982_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/art/New%20Project%20-%202026-02-23T114223.982.png",tag:"art",source:"github",label:"New Project   2026 02 23T114223.982",tags:[]},
+{id:"gh_art_New_Project___2026_02_25T000348_672_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/art/New%20Project%20-%202026-02-25T000348.672.png",tag:"art",source:"github",label:"New Project   2026 02 25T000348.672",tags:[]},
+{id:"gh_art_New_Project___2026_02_26T135103_915_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/art/New%20Project%20-%202026-02-26T135103.915.png",tag:"art",source:"github",label:"New Project   2026 02 26T135103.915",tags:[]},
+{id:"gh_art_New_Project___2026_03_04T092555_108_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/art/New%20Project%20-%202026-03-04T092555.108.png",tag:"art",source:"github",label:"New Project   2026 03 04T092555.108",tags:[]},
+{id:"gh_art_New_Project___2026_03_07T130849_997_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/art/New%20Project%20-%202026-03-07T130849.997.png",tag:"art",source:"github",label:"New Project   2026 03 07T130849.997",tags:[]},
+{id:"gh_art_New_Project___2026_03_07T225456_736_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/art/New%20Project%20-%202026-03-07T225456.736.png",tag:"art",source:"github",label:"New Project   2026 03 07T225456.736",tags:[]},
+{id:"gh_art_New_Project___2026_03_16T115104_566_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/art/New%20Project%20-%202026-03-16T115104.566.png",tag:"art",source:"github",label:"New Project   2026 03 16T115104.566",tags:[]},
+{id:"gh_art_New_Project___2026_03_18T152744_123_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/art/New%20Project%20-%202026-03-18T152744.123.png",tag:"art",source:"github",label:"New Project   2026 03 18T152744.123",tags:[]},
+{id:"gh_art_New_Project___2026_03_18T165013_363_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/art/New%20Project%20-%202026-03-18T165013.363.png",tag:"art",source:"github",label:"New Project   2026 03 18T165013.363",tags:[]},
+{id:"gh_art_Ngiko__3__png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/art/Ngiko%20%283%29.png",tag:"art",source:"github",label:"Ngiko (3)",tags:[]},
+{id:"gh_art_Untitled_12_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/art/Untitled-12.png",tag:"art",source:"github",label:"Untitled 12",tags:[]},
+{id:"gh_art_Untitled_17_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/art/Untitled-17.png",tag:"art",source:"github",label:"Untitled 17",tags:[]},
+{id:"gh_art_Untitled_20_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/art/Untitled-20.png",tag:"art",source:"github",label:"Untitled 20",tags:[]},
+{id:"gh_art_Untitled_22__1__png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/art/Untitled-22%20%281%29.png",tag:"art",source:"github",label:"Untitled 22 (1)",tags:[]},
+{id:"gh_art_Untitled_27_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/art/Untitled-27.png",tag:"art",source:"github",label:"Untitled 27",tags:[]},
+{id:"gh_art_Untitled_28_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/art/Untitled-28.png",tag:"art",source:"github",label:"Untitled 28",tags:[]},
+{id:"gh_art_Untitled_29_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/art/Untitled-29.png",tag:"art",source:"github",label:"Untitled 29",tags:[]},
+{id:"gh_art_Untitled_31_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/art/Untitled-31.png",tag:"art",source:"github",label:"Untitled 31",tags:[]},
+{id:"gh_art_Untitled_32_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/art/Untitled-32.png",tag:"art",source:"github",label:"Untitled 32",tags:[]},
+{id:"gh_art_Untitled_33_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/art/Untitled-33.png",tag:"art",source:"github",label:"Untitled 33",tags:[]},
+{id:"gh_art_Untitled_37_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/art/Untitled-37.png",tag:"art",source:"github",label:"Untitled 37",tags:[]},
+{id:"gh_art_Untitled_46_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/art/Untitled-46.png",tag:"art",source:"github",label:"Untitled 46",tags:[]},
+{id:"gh_art_Untitled_47_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/art/Untitled-47.png",tag:"art",source:"github",label:"Untitled 47",tags:[]},
+{id:"gh_art_Untitled_48_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/art/Untitled-48.png",tag:"art",source:"github",label:"Untitled 48",tags:[]},
+{id:"gh_art_Untitled_50_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/art/Untitled-50.png",tag:"art",source:"github",label:"Untitled 50",tags:[]},
+{id:"gh_art_Untitled_52_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/art/Untitled-52.png",tag:"art",source:"github",label:"Untitled 52",tags:[]},
+{id:"gh_art_Untitled_53_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/art/Untitled-53.png",tag:"art",source:"github",label:"Untitled 53",tags:[]},
+{id:"gh_art_Untitled_54_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/art/Untitled-54.png",tag:"art",source:"github",label:"Untitled 54",tags:[]},
+{id:"gh_art_Untitled_55_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/art/Untitled-55.png",tag:"art",source:"github",label:"Untitled 55",tags:[]},
+{id:"gh_art_Untitled_59_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/art/Untitled-59.png",tag:"art",source:"github",label:"Untitled 59",tags:[]},
+{id:"gh_art_Untitled_69_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/art/Untitled-69.png",tag:"art",source:"github",label:"Untitled 69",tags:[]},
+{id:"gh_art_Untitled_76_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/art/Untitled-76.png",tag:"art",source:"github",label:"Untitled 76",tags:[]},
+{id:"gh_art__a_frm1_30_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/art/_a_frm1%2C30.png",tag:"art",source:"github",label:"a frm1,30",tags:[]},
+{id:"gh_art_image__46___2__png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/art/image%20%2846%29%20%282%29.png",tag:"art",source:"github",label:"image (46) (2)",tags:[]},
+{id:"gh_art_image__63___1__png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/art/image%20%2863%29%20%281%29.png",tag:"art",source:"github",label:"image (63) (1)",tags:[]},
+{id:"gh_art_photo_2025_12_27_11_00_44_jpg",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/art/photo_2025-12-27_11-00-44.jpg",tag:"art",source:"github",label:"photo 2025 12 27 11 00 44",tags:[]},
+{id:"gh_art_raw_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/art/raw.png",tag:"art",source:"github",label:"raw",tags:[]},
+{id:"gh_art_skate_chonky_png",src:"https://raw.githubusercontent.com/DenXSol/Chonky-media/main/art/skate%20chonky.png",tag:"art",source:"github",label:"skate chonky",tags:[]}];
+let githubImages=JSON.parse(localStorage.getItem('chonky_github')||'null')||PRELOADED_IMAGES;
 let localImages=JSON.parse(localStorage.getItem('chonky_local')||'[]');
 let pendingImages=JSON.parse(localStorage.getItem('chonky_pending')||'[]');
 let savedIds=JSON.parse(localStorage.getItem('chonky_saved')||'[]');
@@ -322,7 +760,7 @@ let myVotes=JSON.parse(localStorage.getItem('chonky_myvotes')||'{}');
 let currentTab='gifs',searchTerm='',visibleCount=24,modalSrc='',modalImgId='';
 let adminLoggedIn=false,communityFileData=null,communityFileTags=[];
 
-window.addEventListener('DOMContentLoaded',()=>{updateSavedBadge();renderGrid();});
+window.addEventListener('DOMContentLoaded',()=>{updateSavedBadge();renderGrid();loadGlobalRatings();});
 function getAllImages(){return[...githubImages,...localImages];}
 
 function getAvgRating(id){const r=ratings[id];return(!r||r.count===0)?0:r.total/r.count;}
@@ -409,7 +847,7 @@ async function syncFromGitHub(){
   }
   githubImages=newImages;
   localStorage.setItem('chonky_github',JSON.stringify(githubImages));
-  status.innerHTML=`✅ SYNCED ${total} IMAGES!`;
+  status.innerHTML=`✅ SYNCED ${total} IMAGES! PAGE WILL NOW ALWAYS LOAD THESE.`;
   renderGrid();renderAdminManage();showToast(`LOADED ${total} IMAGES! 🎉`);
 }
 function clearGitHubCache(){githubImages=[];localStorage.removeItem('chonky_github');renderGrid();document.getElementById('syncStatus').innerHTML='CACHE CLEARED.';showToast('CACHE CLEARED');}
@@ -434,7 +872,6 @@ function renderGrid(){
   empty.style.display='none';lmw.style.display=items.length>visibleCount?'block':'none';
   grid.innerHTML=items.slice(0,visibleCount).map(img=>{
     const avg=getAvgRating(img.id),r=ratings[img.id],voted=myVotes[img.id];
-    const starsHtml=[1,2,3,4,5].map(n=>`<span class="star ${n<=Math.round(avg)?'lit':''}" onclick="event.stopPropagation();quickRate('${img.id}',${n})" title="Rate ${n}★">★</span>`).join('');
     const voteInfo=r&&r.count>0?`${r.count} vote${r.count!==1?'s':''}`:'No ratings';
     return`<div class="card" onclick="openModal('${img.id}')">
       <div class="card-img-wrap">
@@ -446,9 +883,11 @@ function renderGrid(){
           <button class="btn-bk ${savedIds.includes(img.id)?'bookmarked':''}" onclick="event.stopPropagation();toggleSave('${img.id}')"><svg width="13" height="13" fill="currentColor" viewBox="0 0 24 24"><path d="M17 3H7a2 2 0 0 0-2 2v16l7-3 7 3V5a2 2 0 0 0-2-2z"/></svg></button>
         </div>
       </div>
-      <div class="card-footer">
-        <div class="star-row">${starsHtml}</div>
-        ${voted?`<span class="voted-badge">Rated ${voted}★</span>`:`<span class="vote-count">${voteInfo}</span>`}
+      <div class="card-footer" onclick="event.stopPropagation();openRateModal('${img.id}')">
+        ${avg>0
+          ? `<span class="card-avg">${'★'.repeat(Math.round(avg))}${'☆'.repeat(5-Math.round(avg))}</span><span class="vote-count">${r?r.count:0} vote${r&&r.count!==1?'s':''}</span>`
+          : `<span class="vote-count-dim">★ TAP TO RATE</span>`
+        }
       </div>
     </div>`;
   }).join('');
@@ -574,6 +1013,125 @@ function deleteImg(id){if(!confirm('Delete?'))return;localImages=localImages.fil
 function readFile(file){return new Promise(res=>{const r=new FileReader();r.onload=e=>res(e.target.result);r.readAsDataURL(file);});}
 function saveLocal(){try{localStorage.setItem('chonky_local',JSON.stringify(localImages));}catch(e){showToast('STORAGE FULL!');}}
 function savePending(){localStorage.setItem('chonky_pending',JSON.stringify(pendingImages));}
+
+let rateModalId = '';
+let rateModalSelected = 0;
+const starLabels = ['','😐 MEH','😊 OKAY','😄 GOOD','🔥 GREAT','🐾 CHONKY!'];
+
+function openRateModal(id) {
+  const img = getAllImages().find(i=>i.id===id);
+  if (!img) return;
+  rateModalId = id;
+  rateModalSelected = 0;
+  document.getElementById('rateModalImg').src = img.src;
+  document.getElementById('rateModalTitle').textContent = img.label || 'RATE THIS IMAGE';
+  document.getElementById('rateModalSelected').textContent = '';
+  const already = myVotes[id];
+  const r = ratings[id];
+  const alreadyEl = document.getElementById('rateModalAlready');
+  const starsEl = document.getElementById('rateModalStars');
+  const submitBtn = document.getElementById('rateSubmitBtn');
+  if (already) {
+    alreadyEl.style.display = 'block';
+    alreadyEl.textContent = `YOU ALREADY RATED THIS ${already}★ — AVG RATING: ${r ? (r.total/r.count).toFixed(1) : already}★ FROM ${r ? r.count : 1} VOTE${r&&r.count!==1?'S':''}`;
+    starsEl.style.display = 'none';
+    submitBtn.style.display = 'none';
+    document.getElementById('rateModalSub').textContent = 'THANKS FOR YOUR VOTE!';
+  } else {
+    alreadyEl.style.display = 'none';
+    starsEl.style.display = 'flex';
+    submitBtn.style.display = 'block';
+    document.getElementById('rateModalSub').textContent = 'HOW CHONKY IS THIS?';
+    unhoverRateStars();
+  }
+  document.getElementById('rateModalBg').classList.add('open');
+}
+
+function closeRateModal() {
+  document.getElementById('rateModalBg').classList.remove('open');
+  rateModalId = ''; rateModalSelected = 0;
+}
+
+function hoverRateStar(n) {
+  document.querySelectorAll('.rate-modal-star').forEach((s,i) => s.classList.toggle('lit', i<n));
+  document.getElementById('rateModalSelected').textContent = starLabels[n] || '';
+}
+
+function unhoverRateStars() {
+  document.querySelectorAll('.rate-modal-star').forEach((s,i) => s.classList.toggle('lit', i<rateModalSelected));
+  document.getElementById('rateModalSelected').textContent = rateModalSelected ? starLabels[rateModalSelected] : '';
+}
+
+function selectRateStar(n) {
+  rateModalSelected = n;
+  unhoverRateStars();
+  document.getElementById('rateSubmitBtn').textContent = `SUBMIT ${n}★`;
+}
+
+
+// ── GLOBAL RATINGS via Upstash ──
+async function loadGlobalRatings() {
+  try {
+    const res = await fetch('/api/ratings');
+    if (!res.ok) return;
+    const globalRatings = await res.json();
+    // Merge global ratings with local (global wins)
+    Object.assign(ratings, globalRatings);
+    localStorage.setItem('chonky_ratings', JSON.stringify(ratings));
+    renderGrid();
+  } catch(e) { console.warn('Could not load global ratings:', e); }
+}
+
+async function submitGlobalRating(imgId, stars) {
+  try {
+    // Generate a stable voter key from browser fingerprint
+    let voterKey = localStorage.getItem('chonky_voter_key');
+    if (!voterKey) {
+      voterKey = 'v_' + Date.now() + '_' + Math.random().toString(36).slice(2);
+      localStorage.setItem('chonky_voter_key', voterKey);
+    }
+    const res = await fetch('/api/ratings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ imgId, stars, voterKey })
+    });
+    const data = await res.json();
+    if (data.alreadyVoted) {
+      showToast('ALREADY RATED THIS ONE! ⭐');
+      myVotes[imgId] = stars;
+      localStorage.setItem('chonky_myvotes', JSON.stringify(myVotes));
+      return false;
+    }
+    if (data.rating) {
+      ratings[imgId] = data.rating;
+      localStorage.setItem('chonky_ratings', JSON.stringify(ratings));
+    }
+    return true;
+  } catch(e) {
+    console.warn('Global rating failed, saving locally:', e);
+    return true;
+  }
+}
+
+async function submitRating() {
+  if (!rateModalSelected) { showToast('PICK A STAR FIRST!'); return; }
+  if (!rateModalId) return;
+  if (myVotes[rateModalId]) { showToast('ALREADY RATED! ⭐'); return; }
+  // Save locally first for instant feedback
+  if (!ratings[rateModalId]) ratings[rateModalId] = {total:0, count:0};
+  ratings[rateModalId].total += rateModalSelected;
+  ratings[rateModalId].count += 1;
+  myVotes[rateModalId] = rateModalSelected;
+  localStorage.setItem('chonky_ratings', JSON.stringify(ratings));
+  localStorage.setItem('chonky_myvotes', JSON.stringify(myVotes));
+  closeRateModal();
+  renderGrid();
+  showToast(`RATED ${rateModalSelected}★ THANKS! 🐾`);
+  if (modalImgId === rateModalId) updateModalRating(rateModalId);
+  // Also submit globally
+  await submitGlobalRating(rateModalId, rateModalSelected);
+}
+
 let _tt;
 function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(_tt);_tt=setTimeout(()=>t.classList.remove('show'),2600);}
 </script>
