@@ -364,12 +364,30 @@ function updateModalRating(id){
 
 async function syncFromGitHub(){
   const status=document.getElementById('syncStatus');
-  status.innerHTML='<span class="spin-sm"></span> Fetching from GitHub...';
+  status.innerHTML='<span class="spin-sm"></span> FETCHING FROM GITHUB...';
   const newImages=[];let total=0;
   for(const[tab,folder]of Object.entries(FOLDER_MAP)){
     try{
-      const apiUrl=`https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${folder}`;
-      const res=await fetch(`https://corsproxy.io/?${encodeURIComponent(apiUrl)}`);
+      // Call GitHub API directly — works from real domains without a proxy
+      const res=await fetch(`https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${folder}`,{
+        headers:{'Accept':'application/vnd.github.v3+json','User-Agent':'Chonky-Site'}
+      });
+      if(!res.ok){
+        // If rate limited, try the git tree API instead
+        const tree=await fetch(`https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/git/trees/HEAD?recursive=1`,{
+          headers:{'Accept':'application/vnd.github.v3+json','User-Agent':'Chonky-Site'}
+        });
+        const treeData=await tree.json();
+        if(treeData.tree){
+          treeData.tree.filter(f=>f.path.startsWith(folder+'/')&&/\.(gif|png|webp|jpg|jpeg)$/i.test(f.path)).forEach(f=>{
+            const name=f.path.split('/').pop();
+            const id=`gh_${tab}_${name.replace(/[^a-z0-9]/gi,'_')}`;
+            newImages.push({id,tag:tab,source:'github',src:`${RAW}/${folder}/${encodeURIComponent(name)}`,label:name.replace(/\.[^.]+$/,'').replace(/[-_()\[\]]/g,' ').trim(),tags:tagCache[id]||[]});
+            total++;
+          });
+        }
+        continue;
+      }
       const files=await res.json();
       if(!Array.isArray(files))continue;
       files.forEach(f=>{
@@ -379,14 +397,20 @@ async function syncFromGitHub(){
           total++;
         }
       });
-      status.innerHTML=`<span class="spin-sm"></span> Found ${total} images…`;
-    }catch(e){console.warn(`Failed ${folder}:`,e);}
+      status.innerHTML=`<span class="spin-sm"></span> FOUND ${total} IMAGES…`;
+    }catch(e){
+      console.warn(`Failed ${folder}:`,e);
+      status.innerHTML=`⚠️ ERROR ON ${folder}: ${e.message}`;
+    }
   }
-  if(total===0){status.innerHTML='⚠️ Could not reach GitHub. Make sure the site is hosted on Vercel, not opened as a local file.';return;}
+  if(total===0){
+    status.innerHTML='⚠️ NO IMAGES FOUND. CHECK YOUR FOLDER NAMES MATCH: gif, stickers, art';
+    return;
+  }
   githubImages=newImages;
   localStorage.setItem('chonky_github',JSON.stringify(githubImages));
-  status.innerHTML=`✅ Synced ${total} images!`;
-  renderGrid();renderAdminManage();showToast(`Loaded ${total} images! 🎉`);
+  status.innerHTML=`✅ SYNCED ${total} IMAGES!`;
+  renderGrid();renderAdminManage();showToast(`LOADED ${total} IMAGES! 🎉`);
 }
 function clearGitHubCache(){githubImages=[];localStorage.removeItem('chonky_github');renderGrid();document.getElementById('syncStatus').innerHTML='CACHE CLEARED.';showToast('CACHE CLEARED');}
 
