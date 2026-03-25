@@ -57,7 +57,11 @@ export default async function handler(req, res) {
       }
 
       const safeImgId = String(imgId).slice(0, 100);
-      const safeVoterKey = String(voterKey || 'anon').slice(0, 100);
+      // Never allow fallback to 'anon' — that causes all keyless voters to collide and block each other
+      if (!voterKey || String(voterKey).trim() === '' || String(voterKey).trim() === 'anon') {
+        return res.status(400).json({ error: 'Missing voterKey' });
+      }
+      const safeVoterKey = String(voterKey).slice(0, 100);
       const safeStars = Number(stars);
 
       // Check duplicate vote
