@@ -95,6 +95,7 @@ header{background:#111;border-bottom:3px solid rgba(255,255,255,0.08);padding:0 
   <!-- PENDING -->
   <div class="section">
     <h2>📥 Pending Submissions <span class="badge" id="pendingBadge">0</span></h2>
+    <button class="btn btn-ghost" style="font-size:0.78rem;padding:7px 16px;margin-bottom:0.8rem;" onclick="renderPending()">🔄 Refresh</button>
     <div id="pendingList"></div>
   </div>
 
@@ -212,7 +213,11 @@ async function renderPending() {
             <input style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:5px 10px;color:white;font-family:Nunito,sans-serif;font-weight:700;font-size:0.85rem;width:100%;"
               id="cap_${sub.id}" value="${(sub.caption||'').replace(/"/g,'&quot;')}" placeholder="Caption...">
           </div>
-          <div class="pending-sub">BY: @${sub.twitter_handle||'anonymous'} · ${new Date(sub.submitted_at).toLocaleDateString()}</div>
+          <div style="margin-bottom:6px;">
+            <input style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:5px 10px;color:white;font-family:Nunito,sans-serif;font-weight:600;font-size:0.78rem;width:100%;"
+              id="handle_${sub.id}" value="${(sub.twitter_handle||'').replace(/^@/,'')}" placeholder="twitter handle (no @)">
+            <div style="font-size:0.7rem;color:rgba(255,255,255,0.3);margin-top:3px;">@ handle (no @ needed) · ${new Date(sub.submitted_at).toLocaleDateString()}</div>
+          </div>
           <div style="margin-bottom:8px;">
             <input style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:5px 10px;color:white;font-family:Nunito,sans-serif;font-weight:600;font-size:0.78rem;width:100%;"
               id="tags_${sub.id}" value="${(sub.tags||[]).join(', ')}" placeholder="tag1, tag2, tag3">
@@ -242,11 +247,12 @@ async function approve(id) {
   const tagsRaw = document.getElementById('tags_' + id)?.value || '';
   const tags = tagsRaw.split(',').map(t => t.trim().toLowerCase()).filter(t => t);
   const category = document.getElementById('cat_' + id)?.value || 'gifs';
+  const twitter_handle = (document.getElementById('handle_' + id)?.value || '').replace(/^@/, '').trim();
   try {
     const res = await fetch('/api/submit', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'approve', id, caption, tags, category })
+      body: JSON.stringify({ action: 'approve', id, caption, tags, category, twitter_handle })
     });
     const data = await res.json();
     if (!data.success) throw new Error(data.error || 'Failed');
