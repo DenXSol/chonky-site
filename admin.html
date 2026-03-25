@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chonky Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Boogaloo&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{--red:#E8231A;--red-dark:#C41A12;--yellow:#FFD93D;--yellow-dark:#F0C000;--black:#111;--radius:16px;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Nunito',sans-serif;background:#1a1a1a;min-height:100vh;color:white;}
+header{background:#111;border-bottom:3px solid rgba(255,255,255,0.08);padding:0 1.5rem;height:64px;display:flex;align-items:center;justify-content:space-between;}
+.logo{font-family:'Boogaloo',cursive;font-size:1.5rem;color:var(--yellow);}
+.logo span{color:rgba(255,255,255,0.5);font-size:1rem;}
+.wrap{max-width:1000px;margin:0 auto;padding:2rem 1.5rem;}
+.btn{font-family:'Nunito',sans-serif;font-weight:800;font-size:0.85rem;padding:10px 22px;border-radius:50px;border:none;cursor:pointer;transition:all 0.18s;text-transform:uppercase;letter-spacing:0.5px;}
+.btn-yellow{background:var(--yellow);color:var(--black);box-shadow:0 3px 0 var(--yellow-dark);}
+.btn-yellow:hover{transform:translateY(-1px);}
+.btn-ghost{background:rgba(255,255,255,0.08);color:white;border:2px solid rgba(255,255,255,0.15);}
+.btn-ghost:hover{background:rgba(255,255,255,0.14);}
+.btn-red{background:rgba(231,76,60,0.3);color:white;border:none;}
+.btn-red:hover{background:rgba(231,76,60,0.5);}
+.section{background:rgba(255,255,255,0.05);border-radius:16px;padding:1.5rem;margin-bottom:1.5rem;border:2px solid rgba(255,255,255,0.07);}
+.section h2{font-family:'Boogaloo',cursive;font-size:1.6rem;color:var(--yellow);margin-bottom:1rem;display:flex;align-items:center;gap:10px;}
+.badge{background:var(--yellow);color:var(--black);font-size:0.72rem;font-weight:900;padding:3px 10px;border-radius:50px;}
+.field-label{display:block;color:white;font-weight:800;font-size:0.85rem;margin-bottom:6px;}
+.input{width:100%;padding:11px 16px;border-radius:10px;border:none;background:rgba(0,0,0,0.4);color:white;font-family:'Nunito',sans-serif;font-size:0.9rem;font-weight:600;outline:none;margin-bottom:10px;}
+.input:focus{outline:2px solid rgba(255,217,61,0.4);}
+.input::placeholder{color:rgba(255,255,255,0.25);}
+.drop-zone{border:3px dashed rgba(255,255,255,0.18);border-radius:14px;padding:2rem 1rem;text-align:center;cursor:pointer;transition:all 0.2s;margin-bottom:1rem;}
+.drop-zone:hover,.drop-zone.dragover{border-color:var(--yellow);background:rgba(255,217,61,0.05);}
+.pending-card{background:rgba(0,0,0,0.3);border-radius:12px;padding:1rem;margin-bottom:10px;display:flex;gap:1rem;align-items:flex-start;border:1.5px solid rgba(255,255,255,0.06);}
+.pending-card img{width:80px;height:80px;object-fit:contain;border-radius:8px;background:rgba(255,255,255,0.05);padding:4px;flex-shrink:0;}
+.pending-info{flex:1;}
+.pending-name{font-weight:800;font-size:0.9rem;margin-bottom:2px;}
+.pending-sub{font-size:0.75rem;color:rgba(255,255,255,0.45);margin-bottom:6px;}
+.pending-tags{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px;}
+.tag-badge{background:rgba(255,255,255,0.1);color:white;font-size:0.7rem;font-weight:700;padding:3px 8px;border-radius:50px;}
+.pending-actions{display:flex;gap:6px;flex-wrap:wrap;}
+.btn-approve{background:#27ae60;color:white;border:none;font-family:'Nunito',sans-serif;font-weight:800;font-size:0.75rem;padding:6px 14px;border-radius:50px;cursor:pointer;}
+.btn-reject{background:rgba(231,76,60,0.3);color:white;border:none;font-family:'Nunito',sans-serif;font-weight:800;font-size:0.75rem;padding:6px 14px;border-radius:50px;cursor:pointer;}
+.cat-select{background:rgba(255,255,255,0.1);color:white;border:none;border-radius:50px;padding:5px 10px;font-size:0.75rem;font-family:'Nunito',sans-serif;font-weight:700;cursor:pointer;}
+.manage-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;margin-top:0.5rem;}
+.manage-card{background:rgba(0,0,0,0.3);border-radius:12px;overflow:hidden;position:relative;aspect-ratio:1;border:1.5px solid rgba(255,255,255,0.06);}
+.manage-card img{width:100%;height:100%;object-fit:contain;padding:8px;}
+.manage-overlay{position:absolute;inset:0;background:rgba(0,0,0,0.6);display:flex;align-items:flex-end;padding:8px;opacity:0;transition:opacity 0.2s;}
+.manage-card:hover .manage-overlay{opacity:1;}
+.btn-del{background:rgba(231,76,60,0.8);color:white;border:none;font-family:'Nunito',sans-serif;font-weight:800;font-size:0.68rem;padding:4px 10px;border-radius:50px;cursor:pointer;width:100%;}
+.login-box{max-width:360px;margin:4rem auto;text-align:center;}
+.login-box h1{font-family:'Boogaloo',cursive;font-size:2.5rem;color:var(--yellow);margin-bottom:0.5rem;}
+.login-box p{color:rgba(255,255,255,0.5);font-size:0.9rem;margin-bottom:1.5rem;}
+.spin-sm{display:inline-block;width:13px;height:13px;border:2px solid rgba(255,255,255,0.2);border-top-color:var(--yellow);border-radius:50%;animation:spin 0.7s linear infinite;vertical-align:middle;margin-right:5px;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.toast{position:fixed;bottom:1.8rem;left:50%;transform:translateX(-50%) translateY(80px);background:#111;color:white;font-family:'Nunito',sans-serif;font-weight:700;font-size:0.88rem;padding:11px 22px;border-radius:50px;z-index:9999;transition:transform 0.28s;border:2px solid rgba(255,255,255,0.1);white-space:nowrap;pointer-events:none;}
+.toast.show{transform:translateX(-50%) translateY(0);}
+.preview-img{max-width:120px;max-height:120px;border-radius:10px;margin-bottom:8px;border:2px solid rgba(255,255,255,0.1);object-fit:contain;display:none;background:rgba(0,0,0,0.2);}
+.ai-status{font-size:0.78rem;color:rgba(255,255,255,0.55);font-weight:600;margin-bottom:8px;min-height:18px;}
+.sync-status{font-size:0.82rem;color:rgba(255,255,255,0.55);margin-top:8px;min-height:18px;}
+@media(max-width:600px){.pending-card{flex-direction:column;}.wrap{padding:1rem;}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">CHONKY <span>ADMIN</span></div>
+  <div id="headerBtns"></div>
+</header>
+
+<!-- LOGIN -->
+<div id="loginSection">
+  <div class="login-box">
+    <h1>🔒 Admin Login</h1>
+    <p>This page is for Chonky team only</p>
+    <input class="input" id="pwInput" type="password" placeholder="Enter password" onkeydown="if(event.key==='Enter')login()">
+    <button class="btn btn-yellow" style="width:100%;padding:12px;margin-top:4px;" onclick="login()">LOGIN</button>
+    <p id="loginErr" style="color:#ff6b6b;font-size:0.8rem;margin-top:8px;display:none;">Wrong password</p>
+  </div>
+</div>
+
+<!-- ADMIN CONTENT -->
+<div id="adminContent" style="display:none">
+<div class="wrap">
+
+  <!-- GITHUB SYNC -->
+  <div class="section">
+    <h2>🐙 GitHub Sync</h2>
+    <p style="color:rgba(255,255,255,0.55);font-size:0.85rem;margin-bottom:0.8rem;">Fetch latest images from DenXSol/Chonky-media. Run after uploading new images.</p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <button class="btn btn-yellow" onclick="syncGitHub()">🔄 Sync GitHub Images</button>
+      <button class="btn btn-ghost" onclick="clearCache()">Clear Cache</button>
+    </div>
+    <div class="sync-status" id="syncStatus"></div>
+  </div>
+
+  <!-- PENDING -->
+  <div class="section">
+    <h2>📥 Pending Submissions <span class="badge" id="pendingBadge">0</span></h2>
+    <div id="pendingList"></div>
+  </div>
+
+  <!-- ADD IMAGES -->
+  <div class="section">
+    <h2>⬆️ Add Official Images</h2>
+    <div class="drop-zone" id="adminDrop" onclick="document.getElementById('adminFile').click()" ondragover="dzOver(event)" ondragleave="dzLeave()" ondrop="dzDrop(event)">
+      <div style="font-size:2rem;margin-bottom:0.4rem;">📁</div>
+      <p style="color:rgba(255,255,255,0.5);font-size:0.85rem;margin-bottom:0.8rem;">Drag GIFs / Stickers / Art here</p>
+      <button class="btn btn-yellow" style="font-size:0.8rem;" onclick="event.stopPropagation();document.getElementById('adminFile').click()">Choose Files</button>
+    </div>
+    <input type="file" id="adminFile" accept="image/*,.gif" multiple style="display:none" onchange="handleAdminFiles(event)">
+    <img id="adminPreview" class="preview-img" alt="">
+    <div class="ai-status" id="adminAiStatus"></div>
+    <div style="margin-bottom:10px;">
+      <label class="field-label">Category</label>
+      <select class="input" id="adminCat" style="margin-bottom:0;">
+        <option value="gifs">GIF</option>
+        <option value="stickers">Sticker</option>
+        <option value="art">Full Art</option>
+      </select>
+    </div>
+    <div id="adminUploadStatus" style="font-size:0.82rem;color:rgba(255,255,255,0.5);min-height:18px;"></div>
+  </div>
+
+  <!-- MANAGE -->
+  <div class="section">
+    <h2>🗂️ Manage Library</h2>
+    <div class="manage-grid" id="manageGrid"></div>
+  </div>
+
+</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const ADMIN_PASSWORD = 'chonky2025';
+const GITHUB_USER = 'DenXSol';
+const GITHUB_REPO = 'Chonky-media';
+const GITHUB_BRANCH = 'main';
+const RAW = `https://raw.githubusercontent.com/${GITHUB_USER}/${GITHUB_REPO}/${GITHUB_BRANCH}`;
+const FOLDER_MAP = {gifs:'gif', stickers:'stickers', art:'art'};
+
+let githubImages = JSON.parse(localStorage.getItem('chonky_github') || '[]');
+let localImages = JSON.parse(localStorage.getItem('chonky_local') || '[]');
+let pendingImages = JSON.parse(localStorage.getItem('chonky_pending') || '[]');
+
+function login() {
+  if (document.getElementById('pwInput').value === ADMIN_PASSWORD) {
+    document.getElementById('loginSection').style.display = 'none';
+    document.getElementById('adminContent').style.display = 'block';
+    document.getElementById('headerBtns').innerHTML = '<button class="btn btn-ghost" onclick="logout()">LOGOUT</button>';
+    renderPending();
+    renderManage();
+  } else {
+    document.getElementById('loginErr').style.display = 'block';
+  }
+}
+function logout() { location.reload(); }
+
+// GitHub Sync
+async function syncGitHub() {
+  const status = document.getElementById('syncStatus');
+  status.innerHTML = '<span class="spin-sm"></span> FETCHING FROM GITHUB...';
+  const newImages = []; let total = 0;
+  for (const [tab, folder] of Object.entries(FOLDER_MAP)) {
+    try {
+      const res = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${folder}`, {
+        headers: { 'Accept': 'application/vnd.github.v3+json' }
+      });
+      if (!res.ok) continue;
+      const files = await res.json();
+      if (!Array.isArray(files)) continue;
+      files.forEach(f => {
+        if (f.type === 'file' && /\.(gif|png|webp|jpg|jpeg)$/i.test(f.name)) {
+          const id = `gh_${tab}_${f.name.replace(/[^a-z0-9]/gi,'_')}`;
+          newImages.push({ id, tag: tab, source: 'github', src: `${RAW}/${folder}/${encodeURIComponent(f.name)}`, label: f.name.replace(/\.[^.]+$/,'').replace(/[-_()\[\]]/g,' ').trim(), tags: [] });
+          total++;
+        }
+      });
+    } catch(e) { console.warn(e); }
+  }
+  if (total === 0) { status.innerHTML = '⚠️ Could not reach GitHub'; return; }
+  githubImages = newImages;
+  localStorage.setItem('chonky_github', JSON.stringify(githubImages));
+  status.innerHTML = `✅ SYNCED ${total} IMAGES!`;
+  renderManage();
+  showToast(`LOADED ${total} IMAGES!`);
+}
+
+function clearCache() {
+  githubImages = [];
+  localStorage.removeItem('chonky_github');
+  renderManage();
+  document.getElementById('syncStatus').innerHTML = 'CACHE CLEARED.';
+}
+
+// Pending
+function renderPending() {
+  document.getElementById('pendingBadge').textContent = pendingImages.length;
+  const list = document.getElementById('pendingList');
+  if (pendingImages.length === 0) {
+    list.innerHTML = '<p style="color:rgba(255,255,255,0.35);font-size:0.85rem;">NO PENDING SUBMISSIONS</p>';
+    return;
+  }
+  list.innerHTML = pendingImages.map(img => `
+    <div class="pending-card">
+      <img src="${img.src}" alt="">
+      <div class="pending-info">
+        <div class="pending-name">${img.label || 'UNTITLED'}</div>
+        <div class="pending-sub">BY: ${img.submitter} · ${img.submittedAt}</div>
+        <div class="pending-tags">${(img.tags||[]).map(t=>`<span class="tag-badge">${t}</span>`).join('')}</div>
+        <div class="pending-actions">
+          <button class="btn-approve" onclick="approve('${img.id}')">✓ APPROVE</button>
+          <button class="btn-reject" onclick="reject('${img.id}')">✕ REJECT</button>
+          <select class="cat-select" onchange="setCat('${img.id}',this.value)">
+            <option value="gifs">GIF</option>
+            <option value="stickers">STICKER</option>
+            <option value="art">ART</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function approve(id) {
+  const idx = pendingImages.findIndex(i => i.id === id);
+  if (idx === -1) return;
+  const img = {...pendingImages[idx], id: 'com_' + Date.now(), source: 'community'};
+  localImages.unshift(img);
+  pendingImages.splice(idx, 1);
+  saveAll();
+  renderPending();
+  renderManage();
+  showToast('APPROVED! 🎉');
+}
+function reject(id) {
+  pendingImages = pendingImages.filter(i => i.id !== id);
+  localStorage.setItem('chonky_pending', JSON.stringify(pendingImages));
+  renderPending();
+  showToast('REJECTED');
+}
+function setCat(id, val) {
+  const idx = pendingImages.findIndex(i => i.id === id);
+  if (idx > -1) { pendingImages[idx].tag = val; localStorage.setItem('chonky_pending', JSON.stringify(pendingImages)); }
+}
+
+// Add images
+function dzOver(e) { e.preventDefault(); document.getElementById('adminDrop').classList.add('dragover'); }
+function dzLeave() { document.getElementById('adminDrop').classList.remove('dragover'); }
+function dzDrop(e) { e.preventDefault(); dzLeave(); handleFiles(Array.from(e.dataTransfer.files)); }
+function handleAdminFiles(e) { handleFiles(Array.from(e.target.files)); }
+
+async function handleFiles(files) {
+  const cat = document.getElementById('adminCat').value;
+  const status = document.getElementById('adminUploadStatus');
+  for (const file of files) {
+    if (!file.type.startsWith('image/')) continue;
+    status.innerHTML = `<span class="spin-sm"></span> Processing ${file.name}...`;
+    const dataUrl = await readFile(file);
+    localImages.unshift({ id: 'adm_' + Date.now() + Math.random().toString(36).slice(2), src: dataUrl, tag: cat, source: 'official', label: file.name.replace(/\.[^.]+$/,'').replace(/[-_()\[\]]/g,' ').trim(), tags: [] });
+    saveAll();
+  }
+  status.innerHTML = `✅ ${files.length} IMAGE${files.length !== 1 ? 'S' : ''} ADDED!`;
+  renderManage();
+  document.getElementById('adminFile').value = '';
+}
+
+// Manage
+function renderManage() {
+  const all = [...githubImages, ...localImages];
+  const grid = document.getElementById('manageGrid');
+  if (all.length === 0) { grid.innerHTML = '<p style="color:rgba(255,255,255,0.35);font-size:0.85rem;">NO IMAGES YET</p>'; return; }
+  grid.innerHTML = all.slice(0, 60).map(img => `
+    <div class="manage-card">
+      <img src="${img.src}" alt="" loading="lazy">
+      <div class="manage-overlay">
+        ${img.source !== 'github' ? `<button class="btn-del" onclick="deleteImg('${img.id}')">🗑 DELETE</button>` : '<span style="font-size:0.65rem;color:rgba(255,255,255,0.4);font-weight:700;">GITHUB</span>'}
+      </div>
+    </div>
+  `).join('');
+}
+
+function deleteImg(id) {
+  if (!confirm('Delete?')) return;
+  localImages = localImages.filter(i => i.id !== id);
+  saveAll();
+  renderManage();
+  showToast('DELETED');
+}
+
+function saveAll() {
+  try {
+    localStorage.setItem('chonky_local', JSON.stringify(localImages));
+    localStorage.setItem('chonky_pending', JSON.stringify(pendingImages));
+  } catch(e) { showToast('STORAGE FULL!'); }
+}
+
+function readFile(file) {
+  return new Promise(res => { const r = new FileReader(); r.onload = e => res(e.target.result); r.readAsDataURL(file); });
+}
+
+let _tt;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(_tt); _tt = setTimeout(() => t.classList.remove('show'), 2600);
+}
+</script>
+</body>
+</html>
