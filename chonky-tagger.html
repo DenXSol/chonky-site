@@ -139,9 +139,18 @@ async function startTagging() {
     const res = await fetch('https://raw.githubusercontent.com/DenXSol/chonky-site/main/index.html');
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const html = await res.text();
-    const match = html.match(/const PRELOADED_IMAGES=(\[[\s\S]*?\]);/);
-    if (!match) throw new Error('Could not find PRELOADED_IMAGES in page — make sure index.html is up to date on GitHub');
-    const images = JSON.parse(match[1]);
+    // Find start of array
+    const startMarker = 'const PRELOADED_IMAGES=[';
+    const startIdx = html.indexOf(startMarker);
+    if (startIdx === -1) throw new Error('Could not find PRELOADED_IMAGES in page');
+    // Walk forward counting brackets to find the end
+    let depth = 0, endIdx = startIdx + startMarker.length - 1;
+    for (let i = endIdx; i < html.length; i++) {
+      if (html[i] === '[') depth++;
+      else if (html[i] === ']') { depth--; if (depth === 0) { endIdx = i; break; } }
+    }
+    const rawArray = html.slice(startIdx + startMarker.length - 1, endIdx + 1);
+    const images = JSON.parse(rawArray);
     images.forEach(img => {
       const name = img.src.split('/').pop();
       allFiles.push({ folder: img.tag, tab: img.tag, name: decodeURIComponent(name), url: img.src });
