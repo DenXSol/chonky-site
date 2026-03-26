@@ -257,32 +257,39 @@ footer{position:relative;z-index:1;text-align:center;padding:1.5rem;border-top:2
 .dropdown-menu{
   display:none;
   position:absolute;
-  top:calc(100% + 10px);
+  top:calc(100% + 12px);
   right:0;
-  background:#111;
+  background:#C41A12;
   border:3px solid #fdde88;
-  border-radius:16px;
-  overflow:hidden;
-  min-width:200px;
+  border-radius:20px;
+  padding:12px;
+  min-width:210px;
   z-index:9999;
   box-shadow:0 8px 30px rgba(0,0,0,0.5);
+  display:none;
+  flex-direction:column;
+  gap:8px;
 }
 .dropdown-menu a{
   display:block;
-  padding:12px 20px;
-  color:white;
+  padding:9px 20px;
+  color:#050505;
   text-decoration:none;
   font-family:'Nunito',sans-serif;
-  font-weight:800;
-  font-size:0.88rem;
+  font-weight:900;
+  font-size:0.82rem;
   text-transform:uppercase;
   letter-spacing:0.5px;
-  border-bottom:1px solid rgba(255,255,255,0.08);
-  transition:background 0.15s;
+  background:#fdde88;
+  border:3px solid #111;
+  border-radius:50px;
+  box-shadow:0 4px 0 #111;
+  transition:transform 0.1s,box-shadow 0.1s;
+  text-align:center;
 }
-.dropdown-menu a:last-child{border-bottom:none;}
-.dropdown-menu a:hover{background:rgba(253,222,136,0.15);color:#fdde88;}
-.dropdown-menu.open{display:block;animation:popIn 0.15s ease-out;}
+.dropdown-menu a:hover{transform:translateY(2px);box-shadow:0 2px 0 #111;}
+.dropdown-menu a:active{transform:translateY(4px);box-shadow:0 0px 0 #111;}
+.dropdown-menu.open{display:flex;animation:popIn 0.15s ease-out;}
 
 /* ── SUBMIT INLINE BUTTON ── */
 .submit-inline-btn{
@@ -326,11 +333,11 @@ footer{position:relative;z-index:1;text-align:center;padding:1.5rem;border-top:2
     <div class="nav-dropdown" id="navDropdown">
       <button class="btn btn-nav dropdown-toggle" onclick="toggleNav(event)">CHONK HERE ▾</button>
       <div class="dropdown-menu" id="dropdownMenu">
-        <a href="https://x.com/chonkycom" target="_blank">𝕏 &nbsp;X / TWITTER</a>
-        <a href="https://dexscreener.com/solana/65kgwwvhxxapiajbr2th2lxafqjj7tkxrztewqeexvzf" target="_blank">📈 DEX</a>
-        <a href="https://jup.ag/?buy=2MwjFE1zbXyNKw6VjzGWa3BhPtFcs8htuX2xwRAtbonk" target="_blank">💰 BUY $CHONKY</a>
-        <a href="https://chonky.com/" target="_blank">🌐 WEBSITE</a>
-        <a href="#" onclick="showCommunity();closeNav();return false;">📤 + SUBMIT</a>
+        <a href="https://x.com/chonkycom" target="_blank">X / TWITTER</a>
+        <a href="https://dexscreener.com/solana/65kgwwvhxxapiajbr2th2lxafqjj7tkxrztewqeexvzf" target="_blank">DEX</a>
+        <a href="https://jup.ag/?buy=2MwjFE1zbXyNKw6VjzGWa3BhPtFcs8htuX2xwRAtbonk" target="_blank">BUY $CHONKY</a>
+        <a href="https://chonky.com/" target="_blank">WEBSITE</a>
+        <a href="#" onclick="showCommunity();closeNav();return false;">+ SUBMIT</a>
       </div>
     </div>
   </div>
