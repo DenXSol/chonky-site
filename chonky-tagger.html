@@ -97,13 +97,6 @@ h1{font-family:'Boogaloo',cursive;font-size:2.5rem;color:var(--yellow);margin-bo
 </div>
 
 <script>
-const PROXY = 'https://api.allorigins.win/get?url=';
-const ghUser = 'DenXSol';
-const ghRepo = 'Chonky-media';
-const GITHUB_BRANCH = 'main';
-const RAW = `https://raw.githubusercontent.com/${ghUser}/${ghRepo}/${GITHUB_BRANCH}`;
-const folderMap = { 'gif': 'gifs', 'stickers': 'stickers', 'art': 'art' };
-
 let tagsResult = {};
 let totalCount = 0, doneCount = 0, errorCount = 0;
 
@@ -137,23 +130,25 @@ async function startTagging() {
   tagsResult = {};
   totalCount = 0; doneCount = 0; errorCount = 0;
 
-  // Collect all files first
-  log('📋 Fetching file list from GitHub...', 'info');
+  // Load images directly from the live site's index.html — no API calls needed
+  log('📋 Loading image list from studio.chonky.com...', 'info');
   const allFiles = [];
 
-  for (const [folder, tab] of Object.entries(folderMap)) {
-    try {
-      const apiUrl = `https://api.github.com/repos/${ghUser}/${ghRepo}/contents/${folder}`;
-      const res = await fetch(PROXY + encodeURIComponent(apiUrl));
-      const data = await res.json();
-      const files = JSON.parse(data.contents);
-      if (!Array.isArray(files)) { log(`⚠️ Folder "${folder}" not found or empty`, 'err'); continue; }
-      const imgFiles = files.filter(f => f.type === 'file' && /\.(gif|png|webp|jpg|jpeg)$/i.test(f.name));
-      imgFiles.forEach(f => allFiles.push({ folder, tab, name: f.name, url: `${RAW}/${folder}/${encodeURIComponent(f.name)}` }));
-      log(`✓ Found ${imgFiles.length} images in /${folder}`, 'ok');
-    } catch(e) {
-      log(`✗ Failed to fetch /${folder}: ${e.message}`, 'err');
-    }
+  try {
+    const res = await fetch('https://studio.chonky.com/');
+    const html = await res.text();
+    // Extract PRELOADED_IMAGES array from the page
+    const match = html.match(/const PRELOADED_IMAGES=(\[[\s\S]*?\]);/);
+    if (!match) throw new Error('Could not find image list in page');
+    const images = JSON.parse(match[1]);
+    images.forEach(img => {
+      const name = img.src.split('/').pop();
+      allFiles.push({ folder: img.tag, tab: img.tag, name: decodeURIComponent(name), url: img.src });
+    });
+    log(`✓ Loaded ${allFiles.length} images (GIFs, Stickers, Art)`, 'ok');
+  } catch(e) {
+    log(`✗ Failed to load from site: ${e.message}`, 'err');
+    return;
   }
 
   totalCount = allFiles.length;
