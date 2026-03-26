@@ -130,24 +130,27 @@ async function startTagging() {
   tagsResult = {};
   totalCount = 0; doneCount = 0; errorCount = 0;
 
-  // Load images directly from the live site's index.html — no API calls needed
-  log('📋 Loading image list from studio.chonky.com...', 'info');
+  // Load images from GitHub raw index.html — reliable, no CORS issues
+  log('📋 Loading image list from GitHub...', 'info');
   const allFiles = [];
 
   try {
-    const res = await fetch('https://studio.chonky.com/');
+    const res = await fetch('https://raw.githubusercontent.com/DenXSol/chonky-site/main/index.html');
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const html = await res.text();
-    // Extract PRELOADED_IMAGES array from the page
     const match = html.match(/const PRELOADED_IMAGES=(\[[\s\S]*?\]);/);
-    if (!match) throw new Error('Could not find image list in page');
+    if (!match) throw new Error('Could not find PRELOADED_IMAGES in page — make sure index.html is up to date on GitHub');
     const images = JSON.parse(match[1]);
     images.forEach(img => {
       const name = img.src.split('/').pop();
       allFiles.push({ folder: img.tag, tab: img.tag, name: decodeURIComponent(name), url: img.src });
     });
-    log(`✓ Loaded ${allFiles.length} images (GIFs, Stickers, Art)`, 'ok');
+    const gifCount = allFiles.filter(f => f.tab === 'gifs').length;
+    const stickerCount = allFiles.filter(f => f.tab === 'stickers').length;
+    const artCount = allFiles.filter(f => f.tab === 'art').length;
+    log(`✓ Loaded ${allFiles.length} images — ${gifCount} GIFs, ${stickerCount} Stickers, ${artCount} Art`, 'ok');
   } catch(e) {
-    log(`✗ Failed to load from site: ${e.message}`, 'err');
+    log(`✗ Failed to load image list: ${e.message}`, 'err');
     return;
   }
 
