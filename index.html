@@ -250,17 +250,89 @@ footer{position:relative;z-index:1;text-align:center;padding:1.5rem;border-top:2
   padding:9px 14px;
   font-size:1rem;
 }
+
+/* ── DROPDOWN NAV ── */
+.nav-dropdown{position:relative;}
+.dropdown-toggle{white-space:nowrap;}
+.dropdown-menu{
+  display:none;
+  position:absolute;
+  top:calc(100% + 10px);
+  right:0;
+  background:#111;
+  border:3px solid #fdde88;
+  border-radius:16px;
+  overflow:hidden;
+  min-width:200px;
+  z-index:9999;
+  box-shadow:0 8px 30px rgba(0,0,0,0.5);
+}
+.dropdown-menu a{
+  display:block;
+  padding:12px 20px;
+  color:white;
+  text-decoration:none;
+  font-family:'Nunito',sans-serif;
+  font-weight:800;
+  font-size:0.88rem;
+  text-transform:uppercase;
+  letter-spacing:0.5px;
+  border-bottom:1px solid rgba(255,255,255,0.08);
+  transition:background 0.15s;
+}
+.dropdown-menu a:last-child{border-bottom:none;}
+.dropdown-menu a:hover{background:rgba(253,222,136,0.15);color:#fdde88;}
+.dropdown-menu.open{display:block;animation:popIn 0.15s ease-out;}
+
+/* ── SUBMIT INLINE BUTTON ── */
+.submit-inline-btn{
+  background:#fdde88;
+  color:#050505;
+  border:3px solid #111;
+  font-family:'Nunito',sans-serif;
+  font-weight:900;
+  font-size:0.78rem;
+  padding:7px 16px;
+  border-radius:50px;
+  cursor:pointer;
+  transition:transform 0.1s,box-shadow 0.1s,opacity 0.2s;
+  letter-spacing:0.5px;
+  text-transform:uppercase;
+  box-shadow:0 4px 0 #111;
+  white-space:nowrap;
+  display:none;
+  vertical-align:middle;
+  margin-left:6px;
+}
+.submit-inline-btn.visible{display:inline-flex;align-items:center;}
+.submit-inline-btn:hover{transform:translateY(2px);box-shadow:0 2px 0 #111;}
+
+/* ── MOBILE ── */
+@media(max-width:600px){
+  header{padding:0 0.8rem;height:60px;}
+  .logo img{height:52px !important;}
+  .grid{grid-template-columns:repeat(2,1fr) !important;gap:10px;}
+  .grid-section{padding:0 0.8rem 4rem;}
+  .main-tabs{gap:6px;}
+  .main-tab{font-size:0.78rem;padding:8px 14px;}
+  .hero{padding:1.5rem 0.8rem 1rem;}
+}
 </style>
 </head>
 <body>
 <header>
   <div class="logo" onclick="goHome()"><img src="https://raw.githubusercontent.com/DenXSol/chonky-site/main/chonkylogo2.png" alt="Chonky" style="height:90px;width:auto;vertical-align:middle;"></div>
   <div class="header-btns">
-    <a class="btn btn-nav" href="https://x.com/chonkycom" target="_blank">X</a>
-    <a class="btn btn-nav" href="https://dexscreener.com/solana/65kgwwvhxxapiajbr2th2lxafqjj7tkxrztewqeexvzf" target="_blank">DEX</a>
-    <a class="btn btn-nav" href="https://jup.ag/?buy=2MwjFE1zbXyNKw6VjzGWa3BhPtFcs8htuX2xwRAtbonk" target="_blank">BUY $CHONKY</a>
-    <a class="btn btn-nav" href="https://chonky.com/" target="_blank">WEBSITE</a>
-    <button class="btn btn-submit" onclick="showCommunity()">+ SUBMIT</button>
+    <div class="nav-dropdown" id="navDropdown">
+      <button class="btn btn-nav dropdown-toggle" onclick="toggleNav(event)">CHONK HERE ▾</button>
+      <div class="dropdown-menu" id="dropdownMenu">
+        <a href="https://x.com/chonkycom" target="_blank">𝕏 &nbsp;X / TWITTER</a>
+        <a href="https://dexscreener.com/solana/65kgwwvhxxapiajbr2th2lxafqjj7tkxrztewqeexvzf" target="_blank">📈 DEX</a>
+        <a href="https://jup.ag/?buy=2MwjFE1zbXyNKw6VjzGWa3BhPtFcs8htuX2xwRAtbonk" target="_blank">💰 BUY $CHONKY</a>
+        <a href="https://chonky.com/" target="_blank">🌐 WEBSITE</a>
+        <a href="#" onclick="showCommunity();closeNav();return false;">📤 + SUBMIT</a>
+      </div>
+    </div>
   </div>
 </header>
 
@@ -272,6 +344,7 @@ footer{position:relative;z-index:1;text-align:center;padding:1.5rem;border-top:2
     <button class="main-tab" id="tab-stickers" onclick="switchTab('stickers',this)">Stickers</button>
     <button class="main-tab" id="tab-art" onclick="switchTab('art',this)">Art</button>
     <button class="main-tab" id="tab-community" onclick="switchTab('community',this)">Community</button>
+    <button class="submit-inline-btn" id="submitInlineBtn" onclick="showCommunity()">+ SUBMIT</button>
     <button class="tab-icon" id="savedTabBtn" onclick="switchTab('saved',this)" title="Saved">
       <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M17 3H7a2 2 0 0 0-2 2v16l7-3 7 3V5a2 2 0 0 0-2-2z"/></svg>
     </button>
@@ -989,7 +1062,26 @@ function showGridView(){document.getElementById('gridSection').style.display='bl
 function showCommunity(){document.getElementById('gridSection').style.display='none';document.getElementById('heroSection').style.display='none';document.getElementById('communitySection').classList.add('visible');document.getElementById('adminPanel').classList.remove('visible');window.scrollTo({top:0,behavior:'smooth'});}
 function showAdmin(){document.getElementById('gridSection').style.display='none';document.getElementById('heroSection').style.display='none';document.getElementById('communitySection').classList.remove('visible');document.getElementById('adminPanel').classList.add('visible');if(adminLoggedIn){renderAdminQueue();renderAdminManage();}window.scrollTo({top:0,behavior:'smooth'});}
 
-function switchTab(tab,btn){currentTab=tab;visibleCount=24;document.querySelectorAll('.main-tab').forEach(t=>t.classList.remove('active'));document.getElementById('savedTabBtn').classList.remove('active');if(btn){if(btn.classList.contains('tab-icon'))btn.classList.add('has-saves');else btn.classList.add('active');}showGridView();renderGrid();}
+function switchTab(tab,btn){
+  currentTab=tab;visibleCount=24;
+  document.querySelectorAll('.main-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('savedTabBtn').classList.remove('active');
+  if(btn){if(btn.classList.contains('tab-icon'))btn.classList.add('has-saves');else btn.classList.add('active');}
+  // Show submit button only on community tab
+  const submitBtn=document.getElementById('submitInlineBtn');
+  if(submitBtn) submitBtn.classList.toggle('visible', tab==='community');
+  showGridView();renderGrid();
+}
+
+// Dropdown nav
+function toggleNav(e){
+  e.stopPropagation();
+  document.getElementById('dropdownMenu').classList.toggle('open');
+}
+function closeNav(){
+  document.getElementById('dropdownMenu').classList.remove('open');
+}
+document.addEventListener('click', closeNav);
 
 function renderGrid(){
   const grid=document.getElementById('imageGrid'),empty=document.getElementById('emptyState'),lmw=document.getElementById('loadMoreWrap');
