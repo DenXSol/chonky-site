@@ -98,6 +98,12 @@ h1{font-family:'Boogaloo',cursive;font-size:2.5rem;color:var(--yellow);margin-bo
 
 <script>
 const PROXY = 'https://api.allorigins.win/get?url=';
+const ghUser = 'DenXSol';
+const ghRepo = 'Chonky-media';
+const GITHUB_BRANCH = 'main';
+const RAW = `https://raw.githubusercontent.com/${ghUser}/${ghRepo}/${GITHUB_BRANCH}`;
+const folderMap = { 'gif': 'gifs', 'stickers': 'stickers', 'art': 'art' };
+
 let tagsResult = {};
 let totalCount = 0, doneCount = 0, errorCount = 0;
 
