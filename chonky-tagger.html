@@ -137,30 +137,28 @@ async function startTagging() {
 
   try {
     const res = await fetch('https://raw.githubusercontent.com/DenXSol/chonky-site/main/index.html');
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
     const html = await res.text();
-    // Find start of array
-    const startMarker = 'const PRELOADED_IMAGES=[';
-    const startIdx = html.indexOf(startMarker);
-    if (startIdx === -1) throw new Error('Could not find PRELOADED_IMAGES in page');
-    // Walk forward counting brackets to find the end
-    let depth = 0, endIdx = startIdx + startMarker.length - 1;
-    for (let i = endIdx; i < html.length; i++) {
-      if (html[i] === '[') depth++;
-      else if (html[i] === ']') { depth--; if (depth === 0) { endIdx = i; break; } }
+    // Extract each image line by line — avoids JSON.parse CSP issues
+    const lines = html.split('\n');
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (!trimmed.startsWith('{id:')) continue;
+      const srcMatch = trimmed.match(/src:"([^"]+)"/);
+      const tagMatch = trimmed.match(/tag:"([^"]+)"/);
+      if (!srcMatch || !tagMatch) continue;
+      const src = srcMatch[1];
+      const tab = tagMatch[1];
+      const name = decodeURIComponent(src.split('/').pop());
+      allFiles.push({ tab, name, url: src });
     }
-    const rawArray = html.slice(startIdx + startMarker.length - 1, endIdx + 1);
-    const images = JSON.parse(rawArray);
-    images.forEach(img => {
-      const name = img.src.split('/').pop();
-      allFiles.push({ folder: img.tag, tab: img.tag, name: decodeURIComponent(name), url: img.src });
-    });
+    if (allFiles.length === 0) throw new Error('No images found — is index.html up to date on GitHub?');
     const gifCount = allFiles.filter(f => f.tab === 'gifs').length;
     const stickerCount = allFiles.filter(f => f.tab === 'stickers').length;
     const artCount = allFiles.filter(f => f.tab === 'art').length;
-    log(`✓ Loaded ${allFiles.length} images — ${gifCount} GIFs, ${stickerCount} Stickers, ${artCount} Art`, 'ok');
+    log('\u2713 Loaded ' + allFiles.length + ' images \u2014 ' + gifCount + ' GIFs, ' + stickerCount + ' Stickers, ' + artCount + ' Art', 'ok');
   } catch(e) {
-    log(`✗ Failed to load image list: ${e.message}`, 'err');
+    log('\u2717 Failed to load image list: ' + e.message, 'err');
     return;
   }
 
