@@ -258,7 +258,16 @@ async function approve(id) {
     const data = await res.json();
     if (!data.success) throw new Error(data.error || 'Failed');
     showToast('APPROVED! 🎉');
-    renderPending();
+    // Remove card immediately — no need to reload the whole list
+    const card = document.getElementById('sub_' + id);
+    if (card) card.remove();
+    // Update badge count
+    const badge = document.getElementById('pendingBadge');
+    if (badge) badge.textContent = Math.max(0, parseInt(badge.textContent || '0') - 1);
+    // Show empty state if none left
+    if (document.querySelectorAll('.pending-card').length === 0) {
+      document.getElementById('pendingList').innerHTML = '<p style="color:rgba(255,255,255,0.35);font-size:0.85rem;">NO PENDING SUBMISSIONS</p>';
+    }
   } catch(e) {
     showToast('Error: ' + e.message);
     if (btn) { btn.disabled = false; btn.textContent = '✓ APPROVE'; }
@@ -277,7 +286,13 @@ async function reject(id) {
     const data = await res.json();
     if (!data.success) throw new Error(data.error || 'Failed');
     showToast('REJECTED');
-    renderPending();
+    const card = document.getElementById('sub_' + id);
+    if (card) card.remove();
+    const badge = document.getElementById('pendingBadge');
+    if (badge) badge.textContent = Math.max(0, parseInt(badge.textContent || '0') - 1);
+    if (document.querySelectorAll('.pending-card').length === 0) {
+      document.getElementById('pendingList').innerHTML = '<p style="color:rgba(255,255,255,0.35);font-size:0.85rem;">NO PENDING SUBMISSIONS</p>';
+    }
   } catch(e) {
     showToast('Error: ' + e.message);
     if (btn) { btn.disabled = false; btn.textContent = '✕ REJECT'; }
