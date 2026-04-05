@@ -292,6 +292,16 @@ footer{position:relative;z-index:1;text-align:center;padding:1.5rem;border-top:2
 .dropdown-menu a:active{transform:translateY(4px);box-shadow:0 0px 0 #111;}
 .dropdown-menu.open{display:flex;animation:popIn 0.15s ease-out;}
 
+/* ── FULLSCREEN IMAGE VIEWER ── */
+.fullscreen-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.95);z-index:9999;align-items:center;justify-content:center;padding:1rem;cursor:zoom-out;}
+.fullscreen-bg.open{display:flex;}
+.fullscreen-img{max-width:95vw;max-height:90vh;object-fit:contain;border-radius:12px;box-shadow:0 0 60px rgba(0,0,0,0.8);}
+.fullscreen-close{position:fixed;top:20px;right:20px;width:52px;height:52px;background:#fdde88;border:3px solid #111;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.4rem;font-weight:900;color:#111;cursor:pointer;box-shadow:0 4px 0 #111;font-family:'Nunito',sans-serif;transition:transform 0.1s,box-shadow 0.1s;z-index:10000;}
+.fullscreen-close:hover{transform:translateY(2px);box-shadow:0 2px 0 #111;}
+.modal-zoom-btn{position:absolute;bottom:8px;right:8px;background:rgba(0,0,0,0.6);border:2px solid rgba(255,255,255,0.3);border-radius:50%;width:34px;height:34px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:white;font-size:1rem;transition:all 0.15s;z-index:3;}
+.modal-zoom-btn:hover{background:rgba(253,222,136,0.3);border-color:#fdde88;}
+.modal-img-bg{position:relative;}
+
 /* ── SUBMIT INLINE BUTTON ── */
 .submit-inline-btn{
   background:#fdde88;
@@ -450,7 +460,7 @@ footer{position:relative;z-index:1;text-align:center;padding:1.5rem;border-top:2
 <div class="modal-bg" id="modalBg" onclick="if(event.target===this)closeModal()">
   <div class="modal">
     <button class="modal-x" onclick="closeModal()">✕</button>
-    <div class="modal-img-bg"><img id="modalImg" src="" alt=""></div>
+    <div class="modal-img-bg"><img id="modalImg" src="" alt="" style="cursor:zoom-in;" onclick="openFullscreen()"><div class="modal-zoom-btn" onclick="openFullscreen()" title="View fullscreen">🔍</div></div>
     <h2 id="modalTitle">Download</h2>
     <div id="modalHandle" style="display:none;font-size:0.8rem;color:rgba(255,255,255,0.55);font-weight:600;margin-bottom:8px;"></div>
     <div class="modal-tags" id="modalTags"></div>
@@ -501,6 +511,12 @@ footer{position:relative;z-index:1;text-align:center;padding:1.5rem;border-top:2
   </div>
 </div>
 <div class="toast" id="toast"></div>
+
+<!-- FULLSCREEN IMAGE VIEWER -->
+<div class="fullscreen-bg" id="fullscreenBg" onclick="closeFullscreen()">
+  <img class="fullscreen-img" id="fullscreenImg" src="" alt="">
+  <div class="fullscreen-close" onclick="closeFullscreen()">✕</div>
+</div>
 <footer>2025 © CONTENT.CHONKY.COM — ALL RIGHTS RESERVED</footer>
 
 <script>
@@ -1500,6 +1516,26 @@ async function submitRating() {
   await submitGlobalRating(imgId, stars);
   await loadGlobalRatings();
 }
+
+function openFullscreen(){
+  const src = document.getElementById('modalImg').src;
+  if(!src) return;
+  document.getElementById('fullscreenImg').src = src;
+  document.getElementById('fullscreenBg').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeFullscreen(){
+  document.getElementById('fullscreenBg').classList.remove('open');
+  document.body.style.overflow = '';
+}
+// Close fullscreen on Escape key
+document.addEventListener('keydown', e => {
+  if(e.key === 'Escape') {
+    closeFullscreen();
+    closeModal();
+    closeRateModal();
+  }
+});
 
 let _tt;
 function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(_tt);_tt=setTimeout(()=>t.classList.remove('show'),2600);}
