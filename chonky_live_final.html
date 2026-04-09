@@ -356,7 +356,7 @@ function switchToken(key){
   initJupiter(tok);
   // Update swap button label
   pollJupPrice(tok);pollDex(tok);
-  setTimeout(()=>loadLastTX(20),400);
+  setTimeout(()=>loadLastTX(100),400);
 }
 
 // PENDULUM
@@ -364,16 +364,24 @@ const vizState={flipPrice:false,flipTone:false};
 const MIN_SPD=0.1,MAX_SPD=100.0,BASE_SPD=10.0;
 let soundMode=3;
 
-const TIERS=[];
-const tstep=300/13;
-for(let i=0;i<13;i++){
-  const lo=i===0?1:Math.round(i*tstep);
-  const hi=i===12?300:Math.round((i+1)*tstep);
-  TIERS.push({label:`$${lo}–${hi}`,min:lo,max:hi});
-}
-TIERS.push({label:'$301–400',min:301,max:401});
-TIERS.push({label:'$401–500',min:401,max:501});
-TIERS.push({label:'$500+',   min:501,max:Infinity});
+const TIERS=[
+  {label:'$1–5',    min:1,   max:6},
+  {label:'$5–11',   min:6,   max:12},
+  {label:'$12–21',  min:12,  max:22},
+  {label:'$22–32',  min:22,  max:33},
+  {label:'$33–43',  min:33,  max:44},
+  {label:'$43–52',  min:44,  max:53},
+  {label:'$53–70',  min:53,  max:71},
+  {label:'$71–115', min:71,  max:116},
+  {label:'$116–150',min:116, max:151},
+  {label:'$151–200',min:151, max:201},
+  {label:'$201–300',min:201, max:301},
+  {label:'$301–400',min:301, max:401},
+  {label:'$401–500',min:401, max:501},
+  {label:'$501–600',min:501, max:601},
+  {label:'$601–700',min:601, max:701},
+  {label:'$700+',   min:701, max:Infinity},
+];
 function getTierIdx(u){for(let i=TIERS.length-1;i>=0;i--)if(u>=TIERS[i].min)return i;return 0;}
 
 const SLOT_COLORS=['#4fc3f7','#29b6f6','#4dd0e1','#4db6ac','#81c784','#aed581','#dce775','#fff176','#ffd54f','#ffca28','#ffa726','#ff8c42','#ff6b35','#f4511e','#e53935','#ff1744'];
@@ -504,17 +512,25 @@ function loop(ts){
 }
 
 const feedEl=document.getElementById('feed');
+function activateBall(ti){
+  const ts2=TS[ti];
+  if(!ts2.active){
+    ts2.angle=0;ts2.time=0;
+    ts2.speed=BASE_SPD;ts2.targetSpeed=BASE_SPD;
+    ts2.active=true;ts2.activeFade=1;
+  }
+}
 function fireBuy(usd,lbl){
   const ti=getTierIdx(usd),ts2=TS[ti];
-  if(!ts2.active){ts2.angle=0;ts2.time=0;ts2.speed=BASE_SPD;ts2.targetSpeed=BASE_SPD;}
+  activateBall(ti);
   ts2.active=true;ts2.activeFade=1;
   ts2.targetSpeed=Math.min(MAX_SPD,ts2.targetSpeed+0.20);
   addFeed('buy',`▲ ${lbl}  ${TIERS[ti].label}`);
 }
 function fireSell(usd,lbl){
   const ti=getTierIdx(usd),ts2=TS[ti];
+  activateBall(ti); // sells also activate ball at base speed
   ts2.targetSpeed=Math.max(MIN_SPD,ts2.targetSpeed-0.10);
-  if(ts2.targetSpeed<=MIN_SPD+.05){ts2.active=false;ts2.activeFade=.5;}
   addFeed('sell',`▼ ${lbl}  ${TIERS[ti].label}`);
 }
 function addFeed(type,text){
@@ -595,16 +611,11 @@ function initJupiter(tok){
     if(!window.Jupiter)return setTimeout(()=>initJupiter(tok),600);
     window.Jupiter.init({
       displayMode:'widget',
-      widgetStyle:{
-        position:'bottom-right',
-        size:'default',
-      },
+      widgetStyle:{position:'bottom-right',size:'default'},
       formProps:{
         initialInputMint:SOL_MINT,
         initialOutputMint:tok.mint,
         fixedMint:tok.mint,
-        referralAccount:REFERRAL,
-        referralFee:REFERRAL_FEE,
       },
     });
   }catch(e){setTimeout(()=>initJupiter(tok),600);}
@@ -628,17 +639,16 @@ async function loadLastTX(count){
   const tok=currentToken;
   ['tx20-btn','tx50-btn','tx100-btn'].forEach(id=>{
     const el=document.getElementById(id);
-    if(el){el.classList.remove('active');}
+    if(el) el.classList.remove('active');
   });
   const btnId=count===20?'tx20-btn':count===50?'tx50-btn':'tx100-btn';
   const btn=document.getElementById(btnId);
   if(btn){btn.classList.add('active');btn.textContent='LOADING...';}
 
-  // Reset state
+  // Reset ball state only — do NOT touch the live feed
   initTierState();
   lastTxHashes=new Set();
   lastPollBuys=null;lastPollSells=null;
-  document.getElementById('feed').innerHTML='';
 
   try{
     const pairUrl=`https://api.dexscreener.com/latest/dex/pairs/solana/${tok.pair}`;
@@ -647,7 +657,7 @@ async function loadLastTX(count){
       const data=await res.json();
       const pair=data.pairs?.[0]||data.pair;
       if(pair){
-        // Build simulated trades from time windows
+        // Pick best time window with data
         const windows=[
           {buys:pair.txns?.m5?.buys||0,  sells:pair.txns?.m5?.sells||0,  vol:pair.volume?.m5||0},
           {buys:pair.txns?.h1?.buys||0,  sells:pair.txns?.h1?.sells||0,  vol:pair.volume?.h1||0},
@@ -663,7 +673,6 @@ async function loadLastTX(count){
             const tradeCount=Math.min(count,total);
             const buyRatio=w.buys/total;
             for(let i=0;i<tradeCount;i++){
-              // Vary amounts around average so different tiers activate
               const variance=0.3+Math.random()*1.4;
               simTrades.push({
                 type:Math.random()<buyRatio?'buy':'sell',
@@ -674,35 +683,30 @@ async function loadLastTX(count){
           }
         }
 
-        // Apply trades to state
+        // Apply silently to ball state — NO feed entries
         simTrades.forEach(t=>{
           const ti=getTierIdx(t.usd),ts2=TS[ti];
+          // Both buys and sells activate the ball
+          if(!ts2.active){ts2.angle=0;ts2.time=0;ts2.speed=BASE_SPD;ts2.targetSpeed=BASE_SPD;}
+          ts2.active=true;ts2.activeFade=1;
           if(t.type==='buy'){
-            if(!ts2.active){ts2.angle=0;ts2.time=0;ts2.speed=BASE_SPD;ts2.targetSpeed=BASE_SPD;}
-            ts2.active=true;ts2.activeFade=1;
             ts2.targetSpeed=Math.min(MAX_SPD,ts2.targetSpeed+0.20);
           } else {
             ts2.targetSpeed=Math.max(MIN_SPD,ts2.targetSpeed-0.10);
-            if(ts2.targetSpeed<=MIN_SPD+.05){ts2.active=false;ts2.activeFade=.5;}
           }
         });
 
-        // Snap all speeds instantly
+        // Snap speeds instantly
         TS.forEach(ts=>{ts.speed=ts.targetSpeed;});
 
-        // Show each trade in feed
-        simTrades.forEach(t=>{
-          addFeed(t.type, (t.type==='buy'?'▲':'▼')+' ~$'+t.usd.toFixed(0)+'  '+TIERS[getTierIdx(t.usd)].label);
-        });
-
-        // Baseline for live polling
+        // Reset poll baseline
         lastPollBuys=pair.txns?.m5?.buys||0;
         lastPollSells=pair.txns?.m5?.sells||0;
 
         const lbl=count===20?'LAST 20 TX':count===50?'LAST 50 TX':'LAST 100 TX';
         if(btn){btn.classList.add('active');btn.textContent=lbl;}
         setLive('on');
-        document.getElementById('poll-time').textContent=`LOADED ${simTrades.length} TX · `+new Date().toLocaleTimeString();
+        document.getElementById('poll-time').textContent=`WARMED ${simTrades.length} TX · `+new Date().toLocaleTimeString();
         return;
       }
     }
@@ -710,7 +714,6 @@ async function loadLastTX(count){
 
   const lbl=count===20?'LAST 20 TX':count===50?'LAST 50 TX':'LAST 100 TX';
   if(btn){btn.classList.remove('active');btn.textContent=lbl;}
-  addFeed('sell','— LOAD FAILED —');
 }
 
 // DROPDOWN
@@ -728,8 +731,7 @@ resize();buildTierPanel();initTierState();
 requestAnimationFrame(t=>{lastTime=t;requestAnimationFrame(loop);});
 window.addEventListener('resize',resize);
 setTimeout(()=>{
-  // Auto-load last 20 TX on page load so chart starts warm
-  loadLastTX(20);
+  loadLastTX(100); // default: warm up with last 100 TX
   pollJupPrice();pollDex();
   setInterval(()=>pollJupPrice(),5000);
   setInterval(()=>pollDex(),3000);
