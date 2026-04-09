@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>$CHONKY — LIVE VIBES</title>
 <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap" rel="stylesheet">
-<script src="https://cdn.jup.ag/plugin/v2/plugin.min.js"></script>
+<script src="https://terminal.jup.ag/main-v2.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
 html,body{width:100%;height:100%;overflow:hidden;background:#C8281E;font-family:'Fredoka One',cursive;}
@@ -94,14 +94,16 @@ canvas{display:block;width:100%;height:100%;}
 .info-icon:hover{color:#F5E6A3;}
 .info-icon::after{
   content:attr(data-tip);
-  position:absolute;left:18px;top:50%;transform:translateY(-50%);
+  position:fixed;
   background:#1a0505;color:#F5E6A3;
   font-family:'Fredoka One',cursive;font-size:9px;letter-spacing:.3px;
-  border:1.5px solid #6a1515;border-radius:8px;
-  padding:6px 8px;width:160px;line-height:1.4;
+  border:1.5px solid #F5E6A340;border-radius:8px;
+  padding:8px 10px;width:180px;line-height:1.5;
   pointer-events:none;opacity:0;transition:opacity .2s;
-  z-index:500;white-space:normal;
-  box-shadow:0 4px 12px rgba(0,0,0,.5);
+  z-index:9999;white-space:normal;
+  box-shadow:0 4px 20px rgba(0,0,0,.8);
+  left:200px;top:auto;
+  transform:none;
 }
 .info-icon:hover::after{opacity:1;}
 .tog-wrap{display:flex;flex-direction:column;gap:5px;}
@@ -158,10 +160,18 @@ canvas{display:block;width:100%;height:100%;}
 /* FEED */
 #feed-wrap{padding:0 10px 10px;}
 .feed-ttl{font-size:8px;letter-spacing:2px;color:#F5E6A340;padding-top:8px;margin-bottom:5px;}
-#feed{display:flex;flex-direction:column-reverse;gap:2px;max-height:80px;overflow:hidden;}
-.tx{font-size:8px;padding:2px 7px;border-radius:10px;width:fit-content;animation:fi .3s ease;white-space:nowrap;}
+#feed{
+  display:flex;flex-direction:column;gap:2px;
+  height:140px;overflow-y:auto;overflow-x:hidden;
+  padding-right:2px;
+}
+#feed::-webkit-scrollbar{width:3px;}
+#feed::-webkit-scrollbar-track{background:#2a0606;}
+#feed::-webkit-scrollbar-thumb{background:#6a1515;border-radius:2px;}
+.tx{font-size:8px;padding:3px 7px;border-radius:10px;width:100%;animation:fi .3s ease;white-space:nowrap;flex-shrink:0;}
 .tx.buy{background:#14532d;color:#86efac;border:1px solid #166534;}
 .tx.sell{background:#7f1d1d;color:#fca5a5;border:1px solid #991b1b;}
+.tx.info{background:#2a0606;color:#F5E6A360;border:1px solid #3a0a0a;font-style:italic;}
 #poll-time{font-size:7px;color:#F5E6A325;margin-top:3px;letter-spacing:.3px;}
 @keyframes fi{from{opacity:0;transform:translateY(2px);}to{opacity:1;transform:none;}}
 </style>
@@ -515,8 +525,12 @@ function fireSell(usd,lbl){
   addFeed('sell',`▼ ${lbl}  ${TIERS[ti].label}`);
 }
 function addFeed(type,text){
-  const el=document.createElement('div');el.className='tx '+type;el.textContent=text;
-  feedEl.prepend(el);while(feedEl.children.length>6)feedEl.removeChild(feedEl.lastChild);
+  const el=document.createElement('div');
+  el.className='tx '+(type==='info'?'info':type);
+  el.textContent=text;
+  feedEl.insertBefore(el,feedEl.firstChild);
+  // keep max 100 entries
+  while(feedEl.children.length>100)feedEl.removeChild(feedEl.lastChild);
 }
 
 function fmt(n){if(n>=1e6)return'$'+(n/1e6).toFixed(2)+'M';if(n>=1e3)return'$'+(n/1e3).toFixed(1)+'K';return'$'+n.toFixed(0);}
@@ -544,59 +558,62 @@ async function pollJupPrice(tok){
 async function pollDex(tok){
   tok=tok||currentToken;
   const pairUrl=`https://api.dexscreener.com/latest/dex/pairs/solana/${tok.pair}`;
-  const tradesUrl=`https://api.dexscreener.com/latest/dex/trades/solana/${tok.pair}`;
+
   try{
     const res=await fetch(pairUrl);
-    if(res.ok){
-      const d=await res.json();const pair=d.pairs?.[0]||d.pair;
-      if(pair&&tok.pair===currentToken.pair){
-        document.getElementById('s-vol').textContent=fmt(pair.volume?.h24||0);
-        document.getElementById('s-liq').textContent=fmt(pair.liquidity?.usd||0);
-        document.getElementById('s-fdv').textContent=fmt(pair.fdv||0);
-      }
+    if(!res.ok)throw new Error('pair fetch failed');
+    const d=await res.json();
+    const pair=d.pairs?.[0]||d.pair;
+    if(!pair)throw new Error('no pair data');
+    if(tok.pair!==currentToken.pair)return;
+
+    // Update stats
+    document.getElementById('s-vol').textContent=fmt(pair.volume?.h24||0);
+    document.getElementById('s-liq').textContent=fmt(pair.liquidity?.usd||0);
+    document.getElementById('s-fdv').textContent=fmt(pair.fdv||0);
+
+    // Detect new buys/sells via m5 tx count delta
+    const m5b=pair.txns?.m5?.buys||0;
+    const m5s=pair.txns?.m5?.sells||0;
+    const vol5=pair.volume?.m5||0;
+    const totalTx=Math.max(1,m5b+m5s);
+    const avgUsd=vol5>0?(vol5/totalTx):30;
+
+    if(lastPollBuys!==null){
+      const nb=Math.max(0,m5b-lastPollBuys);
+      const ns=Math.max(0,m5s-lastPollSells);
+      // Cap at 5 per poll to avoid spam on first load
+      for(let i=0;i<Math.min(nb,5);i++) fireBuy(avgUsd,'$'+avgUsd.toFixed(0));
+      for(let i=0;i<Math.min(ns,5);i++) fireSell(avgUsd,'$'+avgUsd.toFixed(0));
     }
-  }catch(e){}
-  try{
-    const res=await fetch(tradesUrl);
-    if(res.ok&&tok.pair===currentToken.pair){
-      const d=await res.json();const trades=d.trades||[];
-      const newT=trades.filter(t=>!lastTxHashes.has(t.txHash));
-      if(newT.length>0&&lastTxHashes.size>0){
-        newT.reverse().forEach(t=>{
-          const usd=parseFloat(t.volumeUsd)||0;
-          if(usd>0){if(t.type==='buy')fireBuy(usd,'$'+usd.toFixed(0));else fireSell(usd,'$'+usd.toFixed(0));}
-        });
-      }
-      newT.forEach(t=>lastTxHashes.add(t.txHash));
-      if(lastTxHashes.size>300){const arr=[...lastTxHashes];lastTxHashes=new Set(arr.slice(arr.length-150));}
-      setLive('on');document.getElementById('poll-time').textContent='UPDATED '+new Date().toLocaleTimeString();
-      return;
-    }
-  }catch(e){}
-  try{
-    const res=await fetch(pairUrl);if(!res.ok)throw new Error();
-    const d=await res.json();const pair=d.pairs?.[0]||d.pair;
-    const m5b=pair?.txns?.m5?.buys||0,m5s=pair?.txns?.m5?.sells||0;
-    const vol5=pair?.volume?.m5||0,avg=vol5>0?(vol5/Math.max(1,m5b+m5s)):30;
-    if(tok.pair===currentToken.pair){
-      if(lastPollBuys!==null){
-        const nb=Math.max(0,m5b-lastPollBuys),ns=Math.max(0,m5s-lastPollSells);
-        for(let i=0;i<nb;i++)fireBuy(avg,'~$'+avg.toFixed(0));
-        for(let i=0;i<ns;i++)fireSell(avg,'~$'+avg.toFixed(0));
-      }
-      lastPollBuys=m5b;lastPollSells=m5s;
-      setLive('on');document.getElementById('poll-time').textContent='UPDATED '+new Date().toLocaleTimeString();
-    }
-  }catch(e){setLive('err');document.getElementById('poll-time').textContent='RECONNECTING...';}
+    lastPollBuys=m5b;
+    lastPollSells=m5s;
+    setLive('on');
+    document.getElementById('poll-time').textContent='UPDATED '+new Date().toLocaleTimeString();
+  }catch(e){
+    setLive('err');
+    document.getElementById('poll-time').textContent='RECONNECTING...';
+  }
 }
 
 function initJupiter(tok){
   tok=tok||currentToken;
   try{
     if(!window.Jupiter)return setTimeout(()=>initJupiter(tok),600);
+    // Clear old instance
+    const el=document.getElementById('jupiter-plugin');
+    if(el)el.innerHTML='';
     window.Jupiter.init({
-      displayMode:'integrated',integratedTargetId:'jupiter-plugin',
-      formProps:{initialInputMint:SOL_MINT,initialOutputMint:tok.mint,fixedMint:tok.mint,referralAccount:REFERRAL,referralFee:REFERRAL_FEE},
+      displayMode:'integrated',
+      integratedTargetId:'jupiter-plugin',
+      endpoint:'https://api.mainnet-beta.solana.com',
+      formProps:{
+        initialInputMint:SOL_MINT,
+        initialOutputMint:tok.mint,
+        fixedMint:tok.mint,
+        referralAccount:REFERRAL,
+        referralFee:REFERRAL_FEE,
+      },
       containerStyles:{width:'100%',borderRadius:'10px',overflow:'hidden'},
     });
   }catch(e){setTimeout(()=>initJupiter(tok),600);}
@@ -631,18 +648,38 @@ async function loadLastTX(count){
   lastPollBuys=null;lastPollSells=null;
 
   try{
-    // DexScreener trades endpoint returns up to 100
-    const res=await fetch(`https://api.dexscreener.com/latest/dex/trades/solana/${tok.pair}`);
+    // Use pairs endpoint to get recent volume and build a simulated history
+    const pairUrl=`https://api.dexscreener.com/latest/dex/pairs/solana/${tok.pair}`;
+    const res=await fetch(pairUrl);
     if(res.ok){
       const data=await res.json();
-      let trades=(data.trades||[]).slice(0,count);
-      // Process oldest first so speeds build up naturally
-      trades.reverse().forEach(trade=>{
-        const usd=parseFloat(trade.volumeUsd)||0;
-        if(usd>0){
-          // Replay silently — no sound on historical load, just apply speed math
-          const ti=getTierIdx(usd),ts2=TS[ti];
-          if(trade.type==='buy'){
+      const pair=data.pairs?.[0]||data.pair;
+      if(pair){
+        // Build simulated trades from available time windows
+        const windows=[
+          {buys:pair.txns?.m5?.buys||0, sells:pair.txns?.m5?.sells||0, vol:pair.volume?.m5||0, label:'5m'},
+          {buys:pair.txns?.h1?.buys||0, sells:pair.txns?.h1?.sells||0, vol:pair.volume?.h1||0, label:'1h'},
+          {buys:pair.txns?.h6?.buys||0, sells:pair.txns?.h6?.sells||0, vol:pair.volume?.h6||0, label:'6h'},
+        ];
+
+        let simTrades=[];
+        // Use the most recent window that has data
+        for(const w of windows){
+          const total=w.buys+w.sells;
+          if(total>0){
+            const avgUsd=w.vol>0?(w.vol/total):30;
+            const tradeCount=Math.min(count,total);
+            const buyRatio=w.buys/total;
+            for(let i=0;i<tradeCount;i++){
+              simTrades.push({type:Math.random()<buyRatio?'buy':'sell', usd:avgUsd*(0.5+Math.random())});
+            }
+            break;
+          }
+        }
+
+        simTrades.forEach(t=>{
+          const ti=getTierIdx(t.usd),ts2=TS[ti];
+          if(t.type==='buy'){
             if(!ts2.active){ts2.angle=0;ts2.time=0;ts2.speed=BASE_SPD;ts2.targetSpeed=BASE_SPD;}
             ts2.active=true;ts2.activeFade=1;
             ts2.targetSpeed=Math.min(MAX_SPD,ts2.targetSpeed+0.20);
@@ -650,16 +687,20 @@ async function loadLastTX(count){
             ts2.targetSpeed=Math.max(MIN_SPD,ts2.targetSpeed-0.10);
             if(ts2.targetSpeed<=MIN_SPD+.05){ts2.active=false;ts2.activeFade=.5;}
           }
-          // Mark as seen so live polling doesn't re-fire them
-          if(trade.txHash)lastTxHashes.add(trade.txHash);
-        }
-      });
-      // Snap speeds instantly (no smooth transition for historical)
-      TS.forEach(ts=>{ts.speed=ts.targetSpeed;});
-      addFeed('buy',`— LOADED LAST ${Math.min(count,trades.length)} TX —`);
-      if(btn){btn.classList.add('active');btn.textContent=count===20?'LAST 20 TX':count===50?'LAST 50 TX':'LAST 100 TX';}
-      setLive('on');
-      return;
+        });
+
+        // Snap speeds instantly
+        TS.forEach(ts=>{ts.speed=ts.targetSpeed;});
+
+        // Reset poll baseline
+        lastPollBuys=pair.txns?.m5?.buys||0;
+        lastPollSells=pair.txns?.m5?.sells||0;
+
+        addFeed('info',`— LOADED ${simTrades.length} SIMULATED TX —`);
+        if(btn){btn.classList.add('active');btn.textContent=count===20?'LAST 20 TX':count===50?'LAST 50 TX':'LAST 100 TX';}
+        setLive('on');
+        return;
+      }
     }
   }catch(e){}
   if(btn){btn.classList.remove('active');btn.textContent=count===20?'LAST 20 TX':count===50?'LAST 50 TX':'LAST 100 TX';}
