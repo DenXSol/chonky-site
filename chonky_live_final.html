@@ -153,9 +153,16 @@ canvas{display:block;width:100%;height:100%;}
 .ssub.green{color:#4ade80;}
 .ssub.red{color:#f87171;}
 
-/* SWAP */
+/* SWAP WIDGET BUTTON */
 #jup-wrap{padding:10px;flex-shrink:0;}
-#jupiter-plugin{width:100%;height:380px;border-radius:12px;overflow:hidden;border:1.5px solid #6a1515;}
+#jup-open-btn{
+  font-family:'Fredoka One',cursive;font-size:11px;letter-spacing:.5px;text-transform:uppercase;
+  background:#F5E6A3;color:#1a0505;border:2px solid #1a0505;border-radius:20px;
+  padding:8px 14px;cursor:pointer;text-align:center;box-shadow:0 3px 0 #1a0505;
+  transition:all .1s;width:100%;display:block;
+}
+#jup-open-btn:hover{transform:translateY(1px);box-shadow:0 2px 0 #1a0505;}
+#jup-open-btn:active{transform:translateY(3px);box-shadow:none;}
 
 /* FEED */
 #feed-wrap{padding:0 10px 10px;}
@@ -294,7 +301,7 @@ canvas{display:block;width:100%;height:100%;}
     <!-- SWAP -->
     <div id="jup-wrap">
       <div class="stitle">SWAP</div>
-      <div id="jupiter-plugin"></div>
+      <button id="jup-open-btn" onclick="openSwap()">⚡ SWAP TOKEN</button>
     </div>
 
     <!-- FEED -->
@@ -363,6 +370,8 @@ function switchToken(key){
   lastTxHashes=new Set();lastPollBuys=null;lastPollSells=null;
   setLive('');
   initJupiter(tok);
+  // Update swap button label
+  document.getElementById('jup-open-btn').textContent='⚡ SWAP '+tok.name;
   pollJupPrice(tok);pollDex(tok);
   setTimeout(()=>loadLastTX(20),400);
 }
@@ -600,12 +609,12 @@ function initJupiter(tok){
   tok=tok||currentToken;
   try{
     if(!window.Jupiter)return setTimeout(()=>initJupiter(tok),600);
-    const el=document.getElementById('jupiter-plugin');
-    if(el)el.innerHTML='';
     window.Jupiter.init({
-      displayMode:'integrated',
-      integratedTargetId:'jupiter-plugin',
-      endpoint:'https://api.mainnet-beta.solana.com',
+      displayMode:'widget',
+      widgetStyle:{
+        position:'bottom-right',
+        size:'default',
+      },
       formProps:{
         initialInputMint:SOL_MINT,
         initialOutputMint:tok.mint,
@@ -613,14 +622,15 @@ function initJupiter(tok){
         referralAccount:REFERRAL,
         referralFee:REFERRAL_FEE,
       },
-      containerStyles:{
-        width:'100%',
-        height:'380px',
-        borderRadius:'10px',
-        overflow:'hidden',
-      },
     });
   }catch(e){setTimeout(()=>initJupiter(tok),600);}
+}
+
+function openSwap(){
+  try{
+    if(window.Jupiter)window.Jupiter.resume();
+    else initJupiter();
+  }catch(e){}
 }
 
 // RESTART
