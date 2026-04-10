@@ -144,9 +144,9 @@ canvas{display:block;width:100%;height:100%;}
       </div>
       <div style="display:flex;flex-direction:column;gap:5px;margin-top:8px;">
         <div class="srow"><button class="cbtn dim" onclick="restartChart()">RESTART</button><span class="iico" data-tip="Stops all balls. Next live trade triggers a fresh start from 10x base speed.">ⓘ</span></div>
-        <div class="srow"><button class="cbtn dim" id="tx20-btn" onclick="loadLastTX(20)">LAST 20 TX</button><span class="iico" data-tip="Silently warms up ball speeds from recent trade history. Live feed stays clean.">ⓘ</span></div>
-        <div class="srow"><button class="cbtn dim" id="tx50-btn" onclick="loadLastTX(50)">LAST 50 TX</button><span class="iico" data-tip="Silently warms up ball speeds from recent trade history. Live feed stays clean.">ⓘ</span></div>
-        <div class="srow"><button class="cbtn dim active" id="tx100-btn" onclick="loadLastTX(100)">LAST 100 TX</button><span class="iico" data-tip="Default on load. Warms up all balls from last 100 trades so chart starts alive.">ⓘ</span></div>
+        <div class="srow"><button class="cbtn dim" id="tx20-btn" onclick="handleHistoryClick(20)">LAST 20 TX</button><span class="iico" data-tip="Silently warms up ball speeds from recent trade history. Live feed stays clean.">ⓘ</span></div>
+        <div class="srow"><button class="cbtn dim" id="tx50-btn" onclick="handleHistoryClick(50)">LAST 50 TX</button><span class="iico" data-tip="Silently warms up ball speeds from recent trade history. Live feed stays clean.">ⓘ</span></div>
+        <div class="srow"><button class="cbtn dim active" id="tx100-btn" onclick="handleHistoryClick(100)">LAST 100 TX</button><span class="iico" data-tip="Default on load. Warms up all balls from last 100 trades so chart starts alive.">ⓘ</span></div>
       </div>
     </div>
     <div class="pdiv" style="margin-top:10px;"></div>
@@ -201,6 +201,14 @@ const TOKENS={
   baobao:{name:'$BAOBAO',mint:'7Da1f2wibgzZZheXnVvqYgbWpccnGPM2CJPUkdcebonk',pair:'bgsrkgj1ufbjniagrlyw8idtkz2eryzyc983e1wekvee',dex:'https://dexscreener.com/solana/bgsrkgj1ufbjniagrlyw8idtkz2eryzyc983e1wekvee',buy:'https://jup.ag/?buy=7Da1f2wibgzZZheXnVvqYgbWpccnGPM2CJPUkdcebonk'},
 };
 let currentToken=TOKENS.chonky,lastPollBuys=null,lastPollSells=null;
+let processedTradeIds=new Set();
+let livePollTimer=null;
+let buttonCooldowns={20:0,50:0,100:0};
+let buttonCooldownTimer=null;
+let selectedWarmLimit=100;
+const LIVE_POLL_MS=30000;
+const HISTORY_COOLDOWN_MS=30000;
+const SOLSCAN_PROXY_BASE='/api/solscan-trades';
 
 const TIERS=[
   {label:'$1–5',min:1,max:6},{label:'$5–11',min:6,max:12},{label:'$12–21',min:12,max:22},
@@ -340,50 +348,160 @@ function fireBuy(usd,lbl){const ti=getTierIdx(usd);activateBall(ti);TS[ti].activ
 function fireSell(usd,lbl){const ti=getTierIdx(usd);activateBall(ti);TS[ti].targetSpeed=Math.max(MIN_SPD,TS[ti].targetSpeed-0.10);addFeed('sell','▼ '+lbl+'  '+TIERS[ti].label);}
 function addFeed(type,text){const el=document.createElement('div');el.className='tx '+type;el.textContent=text;feedEl.insertBefore(el,feedEl.firstChild);while(feedEl.children.length>100)feedEl.removeChild(feedEl.lastChild);}
 
-function restartChart(){initTierState();lastPollBuys=null;lastPollSells=null;}
+function restartChart(){initTierState();lastPollBuys=null;lastPollSells=null;processedTradeIds=new Set();feedEl.innerHTML='';}
 
-// loadLastTX — silently warms up ball speeds, never touches the live feed
-async function loadLastTX(count){
+// Solscan-backed history / live logic
+function setHistoryButtonActive(count){
   ['tx20-btn','tx50-btn','tx100-btn'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.remove('active');});
-  const btnId=count===20?'tx20-btn':count===50?'tx50-btn':'tx100-btn';
-  const btn=document.getElementById(btnId);
-  if(btn){btn.classList.add('active');btn.textContent='LOADING...';}
-  initTierState();lastPollBuys=null;lastPollSells=null;
-  try{
-    const res=await fetch(`https://api.dexscreener.com/latest/dex/pairs/solana/${currentToken.pair}`);
-    if(!res.ok)throw new Error();
-    const data=await res.json();const pair=data.pairs?.[0]||data.pair;
-    if(pair){
-      // Use best available time window
-      const wins=[
-        {b:pair.txns?.m5?.buys||0, s:pair.txns?.m5?.sells||0, v:pair.volume?.m5||0},
-        {b:pair.txns?.h1?.buys||0, s:pair.txns?.h1?.sells||0, v:pair.volume?.h1||0},
-        {b:pair.txns?.h6?.buys||0, s:pair.txns?.h6?.sells||0, v:pair.volume?.h6||0},
-        {b:pair.txns?.h24?.buys||0,s:pair.txns?.h24?.sells||0,v:pair.volume?.h24||0},
-      ];
-      for(const w of wins){
-        const total=w.b+w.s;
-        if(total>0){
-          const avg=w.v>0?(w.v/total):20,n=Math.min(count,total),br=w.b/total;
-          for(let i=0;i<n;i++){
-            const usd=Math.max(1,avg*(0.3+Math.random()*1.4));
-            const ti=getTierIdx(usd),ts2=TS[ti];
-            if(!ts2.active){ts2.angle=0;ts2.time=0;ts2.speed=BASE_SPD;ts2.targetSpeed=BASE_SPD;ts2.active=true;ts2.activeFade=1;}
-            if(Math.random()<br)ts2.targetSpeed=Math.min(MAX_SPD,ts2.targetSpeed+0.20);
-            else ts2.targetSpeed=Math.max(MIN_SPD,ts2.targetSpeed-0.10);
-          }
-          TS.forEach(ts=>{ts.speed=ts.targetSpeed;});
-          lastPollBuys=pair.txns?.m5?.buys||0;lastPollSells=pair.txns?.m5?.sells||0;
-          setLive('on');break;
-        }
-      }
+  const btn=document.getElementById(count===20?'tx20-btn':count===50?'tx50-btn':'tx100-btn');
+  if(btn)btn.classList.add('active');
+}
+function updateHistoryButtons(){
+  const map={20:'LAST 20 TX',50:'LAST 50 TX',100:'LAST 100 TX'};
+  [20,50,100].forEach(count=>{
+    const btn=document.getElementById(count===20?'tx20-btn':count===50?'tx50-btn':'tx100-btn');
+    if(!btn)return;
+    const left=Math.max(0,buttonCooldowns[count]-Date.now());
+    if(left>0){
+      btn.textContent=`${map[count]} (${Math.ceil(left/1000)}S)`;
+      btn.disabled=true;
+      btn.style.opacity='.75';
+    }else{
+      btn.textContent=map[count];
+      btn.disabled=false;
+      btn.style.opacity='1';
     }
-  }catch(e){}
-  const lbl=count===20?'LAST 20 TX':count===50?'LAST 50 TX':'LAST 100 TX';
-  if(btn)btn.textContent=lbl;
-  document.getElementById('poll-time').textContent='WARMED UP · '+new Date().toLocaleTimeString();
+  });
+}
+function startButtonCooldownTicker(){
+  if(buttonCooldownTimer)clearInterval(buttonCooldownTimer);
+  buttonCooldownTimer=setInterval(updateHistoryButtons,250);
+  updateHistoryButtons();
+}
+function startButtonCooldown(count){
+  buttonCooldowns[count]=Date.now()+HISTORY_COOLDOWN_MS;
+  updateHistoryButtons();
 }
 
+function inferTradeSide(item){
+  const mint=currentToken.mint;
+  const fromMint=item.from_token?.token_address||item.from_token?.mint||item.fromToken?.token_address||item.fromToken?.mint||item.token1||item.token1_address||item.source_token||item.in_mint;
+  const toMint=item.to_token?.token_address||item.to_token?.mint||item.toToken?.token_address||item.toToken?.mint||item.token2||item.token2_address||item.destination_token||item.out_mint;
+  if(toMint===mint)return 'buy';
+  if(fromMint===mint)return 'sell';
+  const token1=item.token1_decimals?item.token1:'';
+  const token2=item.token2_decimals?item.token2:'';
+  if(token2===mint)return 'buy';
+  if(token1===mint)return 'sell';
+  return null;
+}
+function inferTradeUsd(item){
+  const candidates=[
+    item.value,
+    item.usd_value,
+    item.volume_usd,
+    item.amount_usd,
+    item.total_usd,
+    item.price_usd,
+    item.swap_usd_value,
+    item.data?.value,
+  ];
+  for(const c of candidates){
+    const n=Number(c);
+    if(Number.isFinite(n)&&n>0)return n;
+  }
+  const amountCandidates=[
+    item.to_token?.amount,
+    item.from_token?.amount,
+    item.toToken?.amount,
+    item.fromToken?.amount,
+    item.amount1,
+    item.amount2,
+    item.amount,
+  ];
+  for(const c of amountCandidates){
+    const n=Number(c);
+    if(Number.isFinite(n)&&n>0)return n;
+  }
+  return 5;
+}
+function normalizeTrade(item){
+  const id=item.trans_id||item.tx_hash||item.signature||item.txHash||item.id;
+  if(!id)return null;
+  const side=inferTradeSide(item);
+  if(!side)return null;
+  const usd=Math.max(1,inferTradeUsd(item));
+  const ts=item.block_time||item.time||item.timestamp||item.created_at||Date.now()/1000;
+  return {id,side,usd,ts,raw:item};
+}
+async function fetchSolscanTrades(limit=100){
+  const url=`${SOLSCAN_PROXY_BASE}?mint=${encodeURIComponent(currentToken.mint)}&limit=${limit}`;
+  const res=await fetch(url,{cache:'no-store'});
+  if(!res.ok)throw new Error('solscan fetch failed');
+  const data=await res.json();
+  const rows=Array.isArray(data)?data:(data.data||data.items||data.result||[]);
+  return rows.map(normalizeTrade).filter(Boolean).sort((a,b)=>(a.ts||0)-(b.ts||0));
+}
+function applyTradeToState(trade,addToFeed=false){
+  if(trade.side==='buy')fireBuy(trade.usd,'$'+Math.round(trade.usd));
+  else fireSell(trade.usd,'$'+Math.round(trade.usd));
+  if(!addToFeed && feedEl.firstChild){
+    feedEl.removeChild(feedEl.firstChild);
+  }
+}
+function resetProcessedIds(trades){
+  processedTradeIds=new Set(trades.map(t=>t.id));
+}
+async function bootstrapFromHistory(limit=100){
+  selectedWarmLimit=limit;
+  setHistoryButtonActive(limit);
+  initTierState();
+  feedEl.innerHTML='';
+  try{
+    const trades=await fetchSolscanTrades(limit);
+    for(const trade of trades)applyTradeToState(trade,false);
+    TS.forEach(ts=>{ts.speed=ts.targetSpeed;});
+    resetProcessedIds(trades);
+    setLive('on');
+    document.getElementById('poll-time').textContent=`BOOTSTRAPPED ${limit} TX · ${new Date().toLocaleTimeString()}`;
+  }catch(e){
+    setLive('err');
+    document.getElementById('poll-time').textContent='SOLSCAN BOOTSTRAP FAILED';
+    console.error(e);
+  }
+}
+async function handleHistoryClick(limit){
+  const left=Math.max(0,buttonCooldowns[limit]-Date.now());
+  if(left>0)return;
+  startButtonCooldown(limit);
+  await bootstrapFromHistory(limit);
+}
+async function pollSolscanLive(){
+  try{
+    const trades=await fetchSolscanTrades(100);
+    const fresh=trades.filter(t=>!processedTradeIds.has(t.id));
+    if(fresh.length){
+      fresh.forEach(trade=>{
+        processedTradeIds.add(trade.id);
+        if(trade.side==='buy')fireBuy(trade.usd,'$'+Math.round(trade.usd));
+        else fireSell(trade.usd,'$'+Math.round(trade.usd));
+      });
+    }
+    setLive('on');
+    document.getElementById('poll-time').textContent=`LIVE ${fresh.length ? '+'+fresh.length+' NEW · ' : ''}${new Date().toLocaleTimeString()}`;
+  }catch(e){
+    setLive('err');
+    document.getElementById('poll-time').textContent='SOLSCAN RECONNECTING...';
+    console.error(e);
+  }
+}
+function startLivePolling(){
+  if(livePollTimer)clearInterval(livePollTimer);
+  livePollTimer=setInterval(()=>{
+    if(document.hidden)return;
+    pollSolscanLive();
+  },LIVE_POLL_MS);
+}
 function fmt(n){if(n>=1e6)return'$'+(n/1e6).toFixed(2)+'M';if(n>=1e3)return'$'+(n/1e3).toFixed(1)+'K';return'$'+n.toFixed(0);}
 function setLive(s){const d=document.getElementById('live-dot');d.className='';if(s==='on')d.classList.add('on');else if(s==='err')d.classList.add('err');}
 
@@ -423,7 +541,7 @@ async function pollDex(){
 
 function switchToken(key){
   const tok=TOKENS[key];if(!tok)return;
-  currentToken=tok;initTierState();lastPollBuys=null;lastPollSells=null;
+  currentToken=tok;initTierState();lastPollBuys=null;lastPollSells=null;processedTradeIds=new Set();
   document.getElementById('tok-stitle').textContent=tok.name;
   document.getElementById('nav-dex').href=tok.dex;
   document.getElementById('nav-buy').href=tok.buy;
@@ -433,7 +551,8 @@ function switchToken(key){
   document.getElementById('feed').innerHTML='';
   setLive('');
   initJupiter(tok);pollJupPrice();pollDex();
-  setTimeout(()=>loadLastTX(100),400);
+  bootstrapFromHistory(100);
+  startLivePolling();
 }
 
 // Jupiter plugin-v1.js — no RPC, no API key needed, Ultra powered
@@ -455,10 +574,18 @@ function initJupiter(tok){
 function toggleDropdown(){document.getElementById('chonk-menu').classList.toggle('open');}
 document.addEventListener('click',e=>{if(!document.getElementById('chonk-dropdown').contains(e.target))document.getElementById('chonk-menu').classList.remove('open');});
 
-resize();buildTierPanel();initTierState();
+resize();buildTierPanel();initTierState();startButtonCooldownTicker();
 requestAnimationFrame(t=>{lastTime=t;requestAnimationFrame(loop);});
 window.addEventListener('resize',resize);
-setTimeout(()=>{loadLastTX(100);pollJupPrice();pollDex();setInterval(pollJupPrice,5000);setInterval(pollDex,3000);},800);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)pollSolscanLive();});
+setTimeout(async ()=>{
+  await bootstrapFromHistory(100);
+  startLivePolling();
+  pollJupPrice();
+  pollDex();
+  setInterval(pollJupPrice,5000);
+  setInterval(pollDex,3000);
+},800);
 setTimeout(initJupiter,1500);
 </script>
 </body>
